@@ -1,0 +1,260 @@
+package seedbanktree.distributions;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import com.google.common.collect.Lists;
+
+import beast.base.core.Input;
+import beast.base.core.Input.Validate;
+import beast.base.evolution.tree.Node;
+import beast.base.inference.Distribution;
+import beast.base.inference.State;
+import multitypetree.distributions.StructuredCoalescentTreeDensity.SCEvent;
+import multitypetree.distributions.StructuredCoalescentTreeDensity.SCEventKind;
+import multitypetree.evolution.tree.MultiTypeNode;
+import seedbanktree.evolution.tree.SeedbankNode;
+import seedbanktree.evolution.tree.SeedbankTree;
+import seedbanktree.evolution.tree.TransitionModel;
+
+public class SeedbankTreeDensity extends Distribution{
+	
+	public Input<SeedbankTree> sbTreeInput = new Input<>("seedbankTree",
+			"Multi-type tree.", Validate.REQUIRED);
+
+	public Input<TransitionModel> transitionModelInput = new Input<>(
+            "transitionModel", "Model of transition between activity and dormancy.",
+            Validate.REQUIRED);
+	
+    public Input<Boolean> checkValidityInput = new Input<>(
+            "checkValidity", "Explicitly check validity of colouring.  "
+            +"(Default false.)  "
+            +"Useful if operators are in danger of proposing invalid trees.",
+            false);
+    
+    protected SeedbankTree sbTree;
+    protected TransitionModel transitionModel;
+    protected boolean checkValidity;
+    
+    private enum SBEventKind {
+        COALESCE, MIGRATE, SAMPLE
+    };
+
+    private class SBEvent {
+        double time;
+        int type, destType;
+        SBEventKind kind;
+        Node node;
+    }
+    
+    private List<SBEvent> eventList;
+    private List<Integer[]> lineageCountList;
+
+    // Empty constructor as required:
+    public SeedbankTreeDensity() { };
+    
+    
+	@Override
+    public void initAndValidate() {
+        sbTree = sbTreeInput.get();
+        transitionModel = transitionModelInput.get();
+        checkValidity = checkValidityInput.get();
+        
+        eventList = new ArrayList<>();
+        lineageCountList = new ArrayList<>();
+        
+        // Ensure tree and migration model are compatible
+//        if (mtTree.hasTypeTrait() && !mtTree.getTypeSet().equals(migrationModel.getTypeSet()))
+//            throw new IllegalArgumentException("Tree and migration model have incompatible type sets.");
+    }
+
+	@Override
+    public double calculateLogP() {
+        
+        // Check validity of tree if required:
+        if (checkValidity && !sbTree.isValid())
+            return Double.NEGATIVE_INFINITY;
+
+        // Ensure sequence of events is up-to-date:
+        updateEventSequence();
+
+        // Start from the tips of the tree, working up.
+        logP = 0;
+
+        // Note that the first event is always a sample. We begin at the first
+        // _interval_ and the event following that interval.
+        for (int eventIdx = 1; eventIdx<eventList.size(); eventIdx++) {
+
+            SBEvent event = eventList.get(eventIdx);
+            Integer[] lineageCount = lineageCountList.get(eventIdx);
+            double delta_t = event.time-eventList.get(eventIdx-1).time;
+
+            // Interval contribution:
+            if (delta_t>0) {
+                double lambda = 0.0;
+                double N_a = transitionModel.getPopSize(1);
+                int k_a = lineageCount[1];
+                int k_d = lineageCount[0];
+                double m_ad = transitionModel.getBackwardRate(1, 0);
+                double m_da = transitionModel.getBackwardRate(0, 1);
+                
+                
+                lambda += k_a*(k_a-1)/(2.0*N_a);
+                lambda += k_a*m_ad;
+                lambda += k_d*m_da;
+                		
+                logP += -delta_t*lambda;
+            }
+
+            // Event contribution:
+            switch (event.kind) {
+                case COALESCE:
+                    double N = transitionModel.getPopSize(event.type);
+                    logP += Math.log(1.0/N);
+                    break;
+
+                case MIGRATE:
+                    double m = transitionModel
+                            .getBackwardRate(event.type, event.destType);
+                    logP += Math.log(m);
+                    break;
+
+                case SAMPLE:
+                    // Do nothing here: only effect of sampling event is
+                    // to change the lineage counts in subsequent intervals.
+                    break;
+            }
+        }
+
+        return logP;
+    }
+
+    /**
+     * Determines the sequence of migration, coalescence and sampling events
+     * which make up the seedbank tree.
+     */
+    protected void updateEventSequence() {
+
+        // Clean up previous list:
+        eventList.clear();
+        lineageCountList.clear();
+        Node rootNode = sbTree.getRoot();
+
+        // Initialise map of active nodes to active change indices:
+        Map<Node, Integer> changeIdx = new HashMap<>();
+        changeIdx.put(rootNode, -1);
+
+        // Initialise lineage count:
+        Integer[] lineageCount = new Integer[2];
+        lineageCount[0] = ((SeedbankNode)rootNode).getNodeType() == 0 ? 1 : 0;
+        lineageCount[1] = ((SeedbankNode)rootNode).getNodeType() == 1 ? 1 : 0;
+
+        // Calculate event sequence:
+        while (!changeIdx.isEmpty()) {
+
+            SBEvent nextEvent = new SBEvent();
+            nextEvent.time = Double.NEGATIVE_INFINITY;
+            nextEvent.node = rootNode; // Initial assignment not significant
+
+            // Determine next event
+            for (Node node : changeIdx.keySet())
+                if (changeIdx.get(node)<0) {
+                    if (node.isLeaf()) {
+                        // Next event is a sample
+                        if (node.getHeight()>nextEvent.time) {
+                            nextEvent.time = node.getHeight();
+                            nextEvent.kind = SBEventKind.SAMPLE;
+                            nextEvent.type = ((SeedbankNode)node).getNodeType();
+                            nextEvent.node = node;
+                        }
+                    } else {
+                        // Next event is a coalescence
+                        if (node.getHeight()>nextEvent.time) {
+                            nextEvent.time = node.getHeight();
+                            nextEvent.kind = SBEventKind.COALESCE;
+                            nextEvent.type = ((SeedbankNode)node).getNodeType();
+                            nextEvent.node = node;
+                        }
+                    }
+                } else {
+                    // Next event is a migration
+                    double thisChangeTime = ((SeedbankNode)node).getChangeTime(changeIdx.get(node));
+                    if (thisChangeTime>nextEvent.time) {
+                        nextEvent.time = thisChangeTime;
+                        nextEvent.kind = SBEventKind.MIGRATE;
+                        nextEvent.destType = ((SeedbankNode)node).getChangeType(changeIdx.get(node));
+                        if (changeIdx.get(node)>0)
+                            nextEvent.type = ((SeedbankNode)node).getChangeType(changeIdx.get(node)-1);
+                        else
+                            nextEvent.type = ((SeedbankNode)node).getNodeType();
+                        nextEvent.node = node;
+                    }
+                }
+
+            // Update active node list (changeIdx) and lineage count appropriately:
+            switch (nextEvent.kind) {
+                case COALESCE:
+                    Node leftChild = nextEvent.node.getLeft();
+                    Node rightChild = nextEvent.node.getRight();
+
+                    changeIdx.remove(nextEvent.node);
+                    changeIdx.put(leftChild, ((SeedbankNode)leftChild).getChangeCount()-1);
+                    changeIdx.put(rightChild, ((SeedbankNode)rightChild).getChangeCount()-1);
+                    lineageCount[nextEvent.type]++;
+                    break;
+
+                case SAMPLE:
+                    changeIdx.remove(nextEvent.node);
+                    lineageCount[nextEvent.type]--;
+                    break;
+
+                case MIGRATE:
+                    lineageCount[nextEvent.destType]--;
+                    lineageCount[nextEvent.type]++;
+                    int oldIdx = changeIdx.get(nextEvent.node);
+                    changeIdx.put(nextEvent.node, oldIdx-1);
+                    break;
+            }
+
+            // Add event to list:
+            eventList.add(nextEvent);
+            lineageCountList.add(Arrays.copyOf(lineageCount, lineageCount.length));
+        }
+
+        // Reverse event and lineage count lists (order them from tips to root):
+        eventList = Lists.reverse(eventList);
+        lineageCountList = Lists.reverse(lineageCountList);
+
+    }
+
+    @Override
+    public boolean requiresRecalculation() {
+        return true;
+    }
+	
+	
+	// Interface requirements
+	
+	@Override
+	public List<String> getArguments() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<String> getConditions() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void sample(State state, Random random) {
+		// TODO Auto-generated method stub
+		
+	}
+
+}
