@@ -436,69 +436,60 @@ public class TreeLikelihood extends GenericTreeLikelihood {
     }
 
     /* Assumes there IS a branch rate model as opposed to traverse() */
-    protected int traverse(final Node node) {
-
+    protected int traverse(final Node node, double leftColorRate, double rightColorRate) {
         int update = (node.isDirty() | hasDirt);
 
         final int nodeIndex = node.getNr();
-
         final double branchRate = branchRateModel.getRateForBranch(node);
         final double branchTime = node.getLength() * branchRate;
 
-        // First update the transition probability matrix(ices) for this branch
-        //if (!node.isRoot() && (update != Tree.IS_CLEAN || branchTime != m_StoredBranchLengths[nodeIndex])) {
+        // Compute transition probabilities separately for each color
+        double[] leftColorProbabilities = computeTransitionProbabilities(leftColorRate, node);
+        double[] rightColorProbabilities = computeTransitionProbabilities(rightColorRate, node);
+
         if (!node.isRoot() && (update != Tree.IS_CLEAN || branchTime != m_branchLengths[nodeIndex])) {
             m_branchLengths[nodeIndex] = branchTime;
             final Node parent = node.getParent();
             likelihoodCore.setNodeMatrixForUpdate(nodeIndex);
             for (int i = 0; i < m_siteModel.getCategoryCount(); i++) {
                 final double jointBranchRate = m_siteModel.getRateForCategory(i, node) * branchRate;
-                substitutionModel.getTransitionProbabilities(node, parent.getHeight(), node.getHeight(), jointBranchRate, probabilities);
-                //System.out.println(node.getNr() + " " + Arrays.toString(m_fProbabilities));
-                likelihoodCore.setNodeMatrix(nodeIndex, i, probabilities);
+
+                // Combine transition probabilities for left and right colors
+                double[] combinedProbabilities = combineProbabilities(leftColorProbabilities, rightColorProbabilities);
+
+                likelihoodCore.setNodeMatrix(nodeIndex, i, combinedProbabilities);
             }
             update |= Tree.IS_DIRTY;
         }
 
-        // If the node is internal, update the partial likelihoods.
         if (!node.isLeaf()) {
+            final Node leftChild = node.getLeft();
+            final int updateLeft = traverse(leftChild, leftColorRate, rightColorRate);
+            final Node rightChild = node.getRight();
+            // Right subtree's contribution is 1 for migration
+            final int updateRight = traverse(rightChild, leftColorRate, 1.0);
 
-            // Traverse down the two child nodes
-            final Node child1 = node.getLeft(); //Two children
-            final int update1 = traverse(child1);
-
-            final Node child2 = node.getRight();
-            final int update2 = traverse(child2);
-
-            // If either child node was updated then update this node too
-            if (update1 != Tree.IS_CLEAN || update2 != Tree.IS_CLEAN) {
-
-                final int childNum1 = child1.getNr();
-                final int childNum2 = child2.getNr();
+            if (updateLeft != Tree.IS_CLEAN || updateRight != Tree.IS_CLEAN) {
+                final int leftChildNum = leftChild.getNr();
+                final int rightChildNum = rightChild.getNr();
 
                 likelihoodCore.setNodePartialsForUpdate(nodeIndex);
-                update |= (update1 | update2);
+                update |= (updateLeft | updateRight);
                 if (update >= Tree.IS_FILTHY) {
                     likelihoodCore.setNodeStatesForUpdate(nodeIndex);
                 }
 
                 if (m_siteModel.integrateAcrossCategories()) {
-                    likelihoodCore.calculatePartials(childNum1, childNum2, nodeIndex);
+                    likelihoodCore.calculatePartials(leftChildNum, rightChildNum, nodeIndex);
                 } else {
                     throw new RuntimeException("Error TreeLikelihood 201: Site categories not supported");
-                    //m_pLikelihoodCore->calculatePartials(childNum1, childNum2, nodeNum, siteCategories);
                 }
 
                 if (node.isRoot()) {
-                    // No parent this is the root of the beast.tree -
-                    // calculate the pattern likelihoods
-
                     final double[] proportions = m_siteModel.getCategoryProportions(node);
                     likelihoodCore.integratePartials(node.getNr(), proportions, m_fRootPartials);
-
-                    if (constantPattern != null) { // && !SiteModel.g_bUseOriginal) {
+                    if (constantPattern != null) {
                         proportionInvariant = m_siteModel.getProportionInvariant();
-                        // some portion of sites is invariant, so adjust root partials for this
                         for (final int i : constantPattern) {
                             m_fRootPartials[i] += proportionInvariant;
                         }
@@ -510,11 +501,36 @@ public class TreeLikelihood extends GenericTreeLikelihood {
                     }
                     likelihoodCore.calculateLogLikelihoods(m_fRootPartials, rootFrequencies, patternLogLikelihoods);
                 }
-
             }
         }
         return update;
-    } // traverseWithBRM
+    }// traverseWithBRM
+
+
+    // Helper method to compute transition probabilities for a given color
+    private double[] computeTransitionProbabilities(double colorRate, Node node) {
+        // Implement color-specific transition probability calculations here
+        // Need to consider the substitution model, branch length, and color-specific rate
+        // Return an array of probabilities based on the color-specific model
+        double[] probabilities = new double[stateCount];
+        for (int state = 0; state < stateCount; state++) {
+             probabilities[state] = computeProbabilityForColor(state, colorRate, node);
+        }
+        return probabilities;
+    }
+
+    // Helper method to combine transition probabilities for left and right colors
+    private double[] combineProbabilities(double[] leftColorProbabilities, double[] rightColorProbabilities) {
+        // Implement a method to combine the probabilities for the two colors
+        // Need to consider the migration parameter and the color-specific probabilities
+        double[] combinedProbabilities = new double[stateCount];
+        for (int state = 0; state < stateCount; state++) {
+             combinedProbabilities[state] = leftColorProbabilities[state] * (1 - migration) + rightColorProbabilities[state] * migration;
+        }
+        return combinedProbabilities;
+    }
+
+
 
     /* return copy of pattern log likelihoods for each of the patterns in the alignment */
 	public double [] getPatternLogLikelihoods() {
