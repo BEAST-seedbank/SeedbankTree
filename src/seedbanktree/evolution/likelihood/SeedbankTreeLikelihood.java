@@ -24,7 +24,7 @@
 */
 
 
-package beast.base.evolution.likelihood;
+package seedbanktree.evolution.likelihood;
 
 import java.util.*;
 
@@ -45,7 +45,7 @@ import beast.base.inference.State;
 @Description("Calculates the probability of sequence data on a beast.tree given a site and substitution model using " +
         "a variant of the 'peeling algorithm'. For details, see" +
         "Felsenstein, Joseph (1981). Evolutionary trees from DNA sequences: a maximum likelihood approach. J Mol Evol 17 (6): 368-376.")
-public class TreeLikelihood extends GenericTreeLikelihood {
+public class SeedbankTreeLikelihood extends GenericTreeLikelihood {
 
     final public Input<Boolean> m_useAmbiguities = new Input<>("useAmbiguities", "flag to indicate that sites containing ambiguous states should be handled instead of ignored (the default)", false);
     final public Input<Boolean> m_useTipLikelihoods = new Input<>("useTipLikelihoods", "flag to indicate that partial likelihoods are provided at the tips", false);
@@ -442,6 +442,12 @@ public class TreeLikelihood extends GenericTreeLikelihood {
         final int nodeIndex = node.getNr();
         final double branchRate = branchRateModel.getRateForBranch(node);
         final double branchTime = node.getLength() * branchRate;
+        
+//        final double branchRate1 = branchRateModel.getRateForBranch(node);
+//        final double branchRate2 = branchRateModel2.getRateForBranch(node);
+//        double branchTimeA = node.getLength() * node.getActiveProportion;
+//        double branchTimeD = node.getLength() * node.getDormantProportion;
+//        final double branchTime = branchTimeA * branchRate1 + branchTimeD * branchRate2
 
         // Compute transition probabilities separately for each color
         double[] leftColorProbabilities = computeTransitionProbabilities(leftColorRate, node);

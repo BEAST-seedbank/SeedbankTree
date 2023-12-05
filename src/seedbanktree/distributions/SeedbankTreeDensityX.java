@@ -3,9 +3,11 @@ package seedbanktree.distributions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 
@@ -14,13 +16,14 @@ import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
 import beast.base.inference.Distribution;
 import beast.base.inference.State;
-import seedbanktree.evolution.tree.SeedbankNode;
-import seedbanktree.evolution.tree.SeedbankTree;
+import seedbanktree.evolution.tree.SeedbankNodeX;
+import seedbanktree.evolution.tree.SeedbankNodeX.NodeEvent;
+import seedbanktree.evolution.tree.SeedbankTreeX;
 import seedbanktree.evolution.tree.TransitionModel;
 
-public class SeedbankTreeDensity extends Distribution{
+public class SeedbankTreeDensityX extends Distribution{
 	
-	public Input<SeedbankTree> sbTreeInput = new Input<>("seedbankTree",
+	public Input<SeedbankTreeX> sbTreeInput = new Input<>("SeedbankTree",
 			"Multi-type tree.", Validate.REQUIRED);
 
 	public Input<TransitionModel> transitionModelInput = new Input<>(
@@ -33,7 +36,7 @@ public class SeedbankTreeDensity extends Distribution{
             +"Useful if operators are in danger of proposing invalid trees.",
             false);
     
-    protected SeedbankTree sbTree;
+    protected SeedbankTreeX sbTree;
     protected TransitionModel transitionModel;
     protected boolean checkValidity;
     
@@ -52,7 +55,7 @@ public class SeedbankTreeDensity extends Distribution{
     private List<Integer[]> lineageCountList;
 
     // Empty constructor as required:
-    public SeedbankTreeDensity() { };
+    public SeedbankTreeDensityX() { };
     
     
 	@Override
@@ -139,81 +142,80 @@ public class SeedbankTreeDensity extends Distribution{
         // Clean up previous list:
         eventList.clear();
         lineageCountList.clear();
-        Node rootNode = sbTree.getRoot();
+        Node rootNode = sbTree.getRoot(); // guarantee that rootNode is coalescent?
 
-        // Initialise map of active nodes to active change indices:
-        Map<Node, Integer> changeIdx = new HashMap<>();
-        changeIdx.put(rootNode, -1);
+        // Initialise set of live nodes:
+        Set<Node> liveNodes = new HashSet<>();
+        liveNodes.add(rootNode);
 
         // Initialise lineage count:
         Integer[] lineageCount = new Integer[2];
-        lineageCount[0] = ((SeedbankNode)rootNode).getNodeType() == 0 ? 1 : 0;
-        lineageCount[1] = ((SeedbankNode)rootNode).getNodeType() == 1 ? 1 : 0;
+        lineageCount[0] = ((SeedbankNodeX)rootNode).getNodeType() == 0 ? 1 : 0;
+        lineageCount[1] = ((SeedbankNodeX)rootNode).getNodeType() == 1 ? 1 : 0;
 
         // Calculate event sequence:
-        while (!changeIdx.isEmpty()) {
+        while (!liveNodes.isEmpty()) {
 
             SBEvent nextEvent = new SBEvent();
             nextEvent.time = Double.NEGATIVE_INFINITY;
             nextEvent.node = rootNode; // Initial assignment not significant
 
             // Determine next event
-            for (Node node : changeIdx.keySet())
-                if (changeIdx.get(node)<0) {
-                    if (node.isLeaf()) {
-                        // Next event is a sample
-                        if (node.getHeight()>nextEvent.time) {
-                            nextEvent.time = node.getHeight();
-                            nextEvent.kind = SBEventKind.SAMPLE;
-                            nextEvent.type = ((SeedbankNode)node).getNodeType();
-                            nextEvent.node = node;
-                        }
-                    } else {
-                        // Next event is a coalescence
-                        if (node.getHeight()>nextEvent.time) {
-                            nextEvent.time = node.getHeight();
-                            nextEvent.kind = SBEventKind.COALESCE;
-                            nextEvent.type = ((SeedbankNode)node).getNodeType();
-                            nextEvent.node = node;
-                        }
-                    }
-                } else {
-                    // Next event is a migration
-                    double thisChangeTime = ((SeedbankNode)node).getChangeTime(changeIdx.get(node));
-                    if (thisChangeTime>nextEvent.time) {
-                        nextEvent.time = thisChangeTime;
-                        nextEvent.kind = SBEventKind.MIGRATE;
-                        nextEvent.destType = ((SeedbankNode)node).getChangeType(changeIdx.get(node));
-                        if (changeIdx.get(node)>0)
-                            nextEvent.type = ((SeedbankNode)node).getChangeType(changeIdx.get(node)-1);
-                        else
-                            nextEvent.type = ((SeedbankNode)node).getNodeType();
+            for (Node node : liveNodes) {
+            	if (((SeedbankNodeX)node).getNodeEvent() == NodeEvent.SAMPLE) {
+            		if (node.getHeight()>nextEvent.time) {
+                        nextEvent.time = node.getHeight();
+                        nextEvent.kind = SBEventKind.SAMPLE;
+                        nextEvent.type = ((SeedbankNodeX)node).getNodeType();
                         nextEvent.node = node;
                     }
-                }
+            	} else if (((SeedbankNodeX)node).getNodeEvent() == NodeEvent.COALESCENT) {
+            		if (node.getHeight()>nextEvent.time) {
+                        nextEvent.time = node.getHeight();
+                        nextEvent.kind = SBEventKind.COALESCE;
+                        nextEvent.type = ((SeedbankNodeX)node).getNodeType();
+                        nextEvent.node = node;
+                    }
+            	} else if (((SeedbankNodeX)node).getNodeEvent() == NodeEvent.MIGRATION) {
+                    if (node.getHeight()>nextEvent.time) {
+                        nextEvent.time = node.getHeight();
+                        nextEvent.kind = SBEventKind.MIGRATE;
+                        // destType is backward in time
+                        nextEvent.destType = ((SeedbankNodeX)node).getNodeType();
+                        nextEvent.type = ((SeedbankNodeX)node).getNodeToType();
+                        nextEvent.node = node;
+                    }
+            	} else {
+            		// Should not fall through.
+                    throw new RuntimeException("No dummy nodes should be included here!");
+            	}
+            }
 
             // Update active node list (changeIdx) and lineage count appropriately:
             switch (nextEvent.kind) {
                 case COALESCE:
                     Node leftChild = nextEvent.node.getLeft();
                     Node rightChild = nextEvent.node.getRight();
+                    
+                    liveNodes.remove(nextEvent.node);
+                    liveNodes.add(leftChild);
+                    liveNodes.add(rightChild);
+                    lineageCount[nextEvent.type]++; 
 
-                    changeIdx.remove(nextEvent.node);
-                    changeIdx.put(leftChild, ((SeedbankNode)leftChild).getChangeCount()-1);
-                    changeIdx.put(rightChild, ((SeedbankNode)rightChild).getChangeCount()-1);
-                    lineageCount[nextEvent.type]++;
                     break;
 
                 case SAMPLE:
-                    changeIdx.remove(nextEvent.node);
+                	liveNodes.remove(nextEvent.node);
                     lineageCount[nextEvent.type]--;
                     break;
 
                 case MIGRATE:
+                	Node daughter = nextEvent.node.getLeft();
+                	liveNodes.remove(nextEvent.node);
+                    liveNodes.add(daughter);
+                    
                     lineageCount[nextEvent.destType]--;
                     lineageCount[nextEvent.type]++;
-                    int oldIdx = changeIdx.get(nextEvent.node);
-                    changeIdx.put(nextEvent.node, oldIdx-1);
                     break;
             }
 

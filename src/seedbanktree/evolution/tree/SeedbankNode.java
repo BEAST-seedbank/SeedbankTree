@@ -11,6 +11,8 @@ public class SeedbankNode extends Node {
 	int nTypeChanges = 0;
     List<Integer> changeTypes = new ArrayList<Integer>();
     List<Double> changeTimes = new ArrayList<Double>();
+    
+    // 0 : Dormant, 1: Active
     int nodeType = 0;
     
     // Obtain number of changes
