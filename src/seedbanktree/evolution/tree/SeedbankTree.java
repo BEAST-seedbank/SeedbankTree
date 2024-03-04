@@ -496,7 +496,6 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
         return true;
     }
 
-    // TODO: should there be a check that a type change is actually a change? 
     private boolean typesAreValid(Node node) {
         for (Node child : node.getChildren()) {
             if (((SeedbankNode)node).getNodeType() != ((SeedbankNode)child).getFinalType())
@@ -507,6 +506,24 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
         }
         
         return true;
+    }
+    
+    /**
+     * Obtain total number of type changes along nodes on tree.
+     * 
+     * @return total change count
+     */
+    public int getTotalNumberOfChanges() {
+        int count = 0;        
+
+        for (Node node : m_nodes) {
+            if (node.isRoot())
+                continue;
+            
+            count += ((SeedbankNode)node).getChangeCount();
+        }
+        
+        return count;
     }
     
     // SCMTT Methods

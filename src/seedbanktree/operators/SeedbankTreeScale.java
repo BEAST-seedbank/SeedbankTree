@@ -15,22 +15,22 @@ public class SeedbankTreeScale extends Operator{
             "seedbankTree", "Seedbank tree on which to operate.",
             Validate.REQUIRED);
             
-//        public Input<TransitionModel> transitionModelInput = new Input<>(
-//            "transitionModel",
-//            "Transition model for proposal distribution",
-//            Input.Validate.REQUIRED);
+//    public Input<TransitionModel> transitionModelInput = new Input<>(
+//        "transitionModel",
+//        "Transition model for proposal distribution",
+//        Input.Validate.REQUIRED);
         
-        public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
-                "Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
+    public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
+    		"Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
         
-        protected SeedbankTree sbTree;
-//        protected TransitionModel trModel;
+    protected SeedbankTree sbTree;
+//    protected TransitionModel trModel;
 
-        @Override
-        public void initAndValidate() {
-            sbTree = seedbankTreeInput.get();
-//            trModel = transitionModelInput.get();
-        }
+    @Override
+    public void initAndValidate() {
+    	sbTree = seedbankTreeInput.get();
+//        trModel = transitionModelInput.get();
+    }
 
 	@Override
 	public double proposal() {

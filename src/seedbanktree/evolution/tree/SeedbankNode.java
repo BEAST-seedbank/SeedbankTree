@@ -126,6 +126,25 @@ public class SeedbankNode extends Node {
 
     }
     
+    // Get total branch length for active/dormant
+    public double getTotalLength(int type) {
+    	if (isRoot()) return 0;
+    	
+    	double total = 0;
+		double prev = height;
+		for (int i=0; i<nTypeChanges; i++) {
+			if (changeTypes.get(i) != type) {
+				total += changeTimes.get(i) - prev;
+			}
+			prev = changeTimes.get(i);
+		}
+		if (getFinalType() == type) {
+			total += parent.getHeight() - prev;
+		}
+	
+    	return total;
+    }
+    
     /**
      * @return shallow copy of node
      */

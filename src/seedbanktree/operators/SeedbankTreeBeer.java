@@ -13,7 +13,6 @@ import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
 import beast.base.inference.Operator;
 import beast.base.util.Randomizer;
-import multitypetree.operators.BeerliFelsenstein.Event;
 import seedbanktree.evolution.tree.SeedbankTree;
 import seedbanktree.evolution.tree.SeedbankNode;
 
@@ -135,7 +134,6 @@ public class SeedbankTreeBeer extends SeedbankTreeOperator {
                     break;
             
                 // HR waiting time contribution
-                // TODO: waiting time propensity change?
                 logHR += -(coalProp + props[deme])*dt;
                 
                 double u = Randomizer.nextDouble()*(coalProp + props[deme]);
@@ -171,7 +169,7 @@ public class SeedbankTreeBeer extends SeedbankTreeOperator {
                     // HR event contribution
                     logHR += Math.log(trModel.getBackwardRate(deme, toDeme));
 
-                    // Implelent migration
+                    // Implement migration
                     sbNode.addChange(toDeme, t);
                     deme = toDeme;
                 }
@@ -187,6 +185,7 @@ public class SeedbankTreeBeer extends SeedbankTreeOperator {
             // Continue simulation beyond old root of tree
             double t = oldRootHeight;
             
+            // TODO: change
             int deme = sbNode.getFinalType();
             SeedbankNode sbNodeSis = (SeedbankNode)eventList.get(eventList.size()-1).node; //oldroot?
             int demeSis = sbNodeSis.getFinalType();
