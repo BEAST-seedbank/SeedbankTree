@@ -2,6 +2,7 @@ package seedbanktree.distributions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,9 @@ public class SeedbankTreeDensity extends Distribution{
             +"Useful if operators are in danger of proposing invalid trees.",
             false);
     
-    protected SeedbankTree sbTree;
-    protected TransitionModel transitionModel;
-    protected boolean checkValidity;
+    private SeedbankTree sbTree;
+    private TransitionModel transitionModel;
+    private boolean checkValidity;
     
     private enum SBEventKind {
         COALESCE, MIGRATE, SAMPLE
@@ -51,10 +52,6 @@ public class SeedbankTreeDensity extends Distribution{
     private List<SBEvent> eventList;
     private List<Integer[]> lineageCountList;
 
-    // Empty constructor as required:
-    public SeedbankTreeDensity() { };
-    
-    
 	@Override
     public void initAndValidate() {
         sbTree = sbTreeInput.get();
@@ -230,28 +227,31 @@ public class SeedbankTreeDensity extends Distribution{
 
     @Override
     public boolean requiresRecalculation() {
+    	// Assumption that if any inputs change, there will be recalculation
         return true;
     }
 	
 	
-	// Interface requirements
+	// Distribution interface requirements
 	
+    /**
+     * @return a list of unique ids for the state nodes that make up the arguments
+     */
 	@Override
 	public List<String> getArguments() {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.singletonList(sbTreeInput.get().getID());
 	}
 
+	/**
+     * @return a list of unique ids for the state nodes that make up the conditions
+     */
 	@Override
 	public List<String> getConditions() {
-		// TODO Auto-generated method stub
-		return null;
+		return transitionModelInput.get().getParameterIds();
 	}
 
 	@Override
-	public void sample(State state, Random random) {
-		// TODO Auto-generated method stub
-		
+	public void sample(State state, Random random) {	
 	}
 
 }

@@ -23,7 +23,7 @@ import beast.base.util.Randomizer;
 import beastfx.app.inputeditor.BeautiDoc;
 
 
-public class SeedbankTree extends Tree implements StateNodeInitialiser {
+public class SeedbankTree extends Tree {
 	
 	// Fields
 	
@@ -796,14 +796,6 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
             n++;
 
         return nodeList.get(n);
-    }
-    
-    @Override
-    public void initStateNodes() { }
-
-    @Override
-    public void getInitialisedStateNodes(List<StateNode> stateNodeList) {
-        stateNodeList.add(this);
     }
     
     /**

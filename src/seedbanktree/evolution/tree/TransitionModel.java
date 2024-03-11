@@ -1,5 +1,9 @@
 package seedbanktree.evolution.tree;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import beast.base.core.BEASTInterface;
 import beast.base.core.Function;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
@@ -22,8 +26,6 @@ public class TransitionModel extends CalculationNode {
 //	Double relativeActiveSize;
 	Function K;
 	Function activeSize;
-	
-	public TransitionModel() { }
 	
     @Override
     public void initAndValidate() {
@@ -73,5 +75,25 @@ public class TransitionModel extends CalculationNode {
         } else { // i == 0
         	return activeSize.getArrayValue() / K.getArrayValue();
         }
+    }
+    
+    /**
+     * @return a list of the unique identifiers for the parameters describing this transition model
+     */
+    public List<String> getParameterIds() {
+    	// TODO: implement this for SeedbankTreeDensity getConditions();
+    	// Code referenced beast.base.evolution.tree.coalescent.ConstantPopulation
+    	List<String> ids = new ArrayList<>();
+    	
+    	if (rateInput.get() instanceof BEASTInterface)
+            ids.add(((BEASTInterface)rateInput.get()).getID());
+    	
+    	if (KInput.get() instanceof BEASTInterface)
+            ids.add(((BEASTInterface)KInput.get()).getID());
+    	
+    	if (activeSizeInput.get() instanceof BEASTInterface)
+            ids.add(((BEASTInterface)activeSizeInput.get()).getID());
+    	
+        return ids;
     }
 }
