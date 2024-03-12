@@ -11,6 +11,8 @@ import beast.base.inference.CalculationNode;
 import beast.base.inference.parameter.RealParameter;
 
 public class TransitionModel extends CalculationNode {
+	
+	// Inputs
 	// seedbank intensity c / rate
 	public Input<Function> rateInput = new Input<> ("rate", "Transition rate."); 
 
@@ -21,11 +23,19 @@ public class TransitionModel extends CalculationNode {
             "activeSize",
             "Active population size.",
             Validate.REQUIRED);
+    
+    public Input<String> activeTypeNameInput = new Input<>(
+            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
+    
+    public Input<String> dormantTypeNameInput = new Input<>(
+            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
 	
-	Function rate;
-//	Double relativeActiveSize;
-	Function K;
-	Function activeSize;
+    //Shadow inputs
+    protected Function rate;
+    protected Function K;
+    protected Function activeSize;
+	private String activeTypeName;
+    private String dormantTypeName;
 	
     @Override
     public void initAndValidate() {
@@ -43,6 +53,9 @@ public class TransitionModel extends CalculationNode {
 
         if (activeSize instanceof RealParameter)
             ((RealParameter)activeSize).setLower(Math.max(((RealParameter)activeSize).getLower(), 0.0));
+        
+        activeTypeName = activeTypeNameInput.get();
+        dormantTypeName = dormantTypeNameInput.get();
     }
     
     /**
@@ -75,6 +88,19 @@ public class TransitionModel extends CalculationNode {
         } else { // i == 0
         	return activeSize.getArrayValue() / K.getArrayValue();
         }
+    }
+    
+    /**
+     * @param typeName name of type
+     * @return numerical index representing type
+     */
+    public int getTypeIndex(String typeName) {
+    	if (typeName == activeTypeName) {
+    		return 1;
+    	} else if (typeName == dormantTypeName) {
+    		return 0;
+    	} else 
+            throw new IllegalArgumentException("TypeSet does not contain type with name " + typeName);
     }
     
     /**

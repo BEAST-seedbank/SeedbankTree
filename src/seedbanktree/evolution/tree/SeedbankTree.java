@@ -23,35 +23,34 @@ import beast.base.util.Randomizer;
 import beastfx.app.inputeditor.BeautiDoc;
 
 
-public class SeedbankTree extends Tree {
+public class SeedbankTree extends Tree implements StateNodeInitialiser {
 	
 	// Fields
 	
 	// Inputs MTT
 	public Input<String> typeLabelInput = new Input<>("typeLabel", "Label for type traits (default 'type')", "type");
-    public Input<TraitSet> typeTraitInput = new Input<>("typeTrait", "Type trait set.  Used only by BEAUti.");
 	
-	// Non-inputs MTT
-	protected String typeLabel;
-    protected TraitSet typeTraitSet;
-//    typeSet not necessary -- only two types, pre-defined
-//    protected TypeSet typeSet;
+    public Input<TraitSet> typeTraitInput = new Input<>("typeTrait", "Type trait set.  Used only by BEAUti.");
+    
+    public Input<String> activeTypeNameInput = new Input<>(
+            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
+    
+    public Input<String> dormantTypeNameInput = new Input<>(
+            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
     
     // Inputs SCMTT
     public Input<TransitionModel> transitionModelInput = new Input<>(
-            "transitionMode,",
+            "transitionModel,",
             "Transition model to use in simulator.",
             Validate.REQUIRED);
     
-    public Input<IntegerParameter> leafTypesInput = new Input<>(
-            "leafTypes",
-            "Types of leaf nodes.");
+	// Shadow inputs MTT
+	private String typeLabel;
+    private TraitSet typeTraitSet;
+    private String activeTypeName;
+    private String dormantTypeName;
     
-    public Input<String> outputFileNameInput = new Input<>(
-            "outputFileName", "Optional name of file to write simulated "
-                    + "tree to.");
-    
-    // Non-inputs SCMTT
+    //SCMTT
     protected TransitionModel transitionModel;
     
     private List<Integer> leafTypes;
@@ -63,7 +62,7 @@ public class SeedbankTree extends Tree {
      * Other private fields and classes:
      */
     private abstract class SBEvent {
-
+    	
         double time;
         int fromType, toType;
 
@@ -72,8 +71,8 @@ public class SeedbankTree extends Tree {
     private class CoalescenceEvent extends SBEvent {
 
         public CoalescenceEvent(int type, double time) {
-        	// TODO: coalescent events don't need from and to... rework events?
             this.fromType = type;
+            this.toType = type;
             this.time = time;
         }
     }
@@ -94,11 +93,10 @@ public class SeedbankTree extends Tree {
     }
     
 	
-	
-    public SeedbankTree() {}
-	
 	@Override
 	public void initAndValidate() {
+		// MTT
+		// If an initial tree is given as input
 		if (m_initial.get() != null) {
             
             if (!(m_initial.get() instanceof SeedbankTree)) {
@@ -112,57 +110,12 @@ public class SeedbankTree extends Tree {
             internalNodeCount = other.internalNodeCount;
             leafNodeCount = other.leafNodeCount;
         }
-		// TODO: not sure why this is done
-        if (nodeCount < 0) {
-            if (m_taxonset.get() != null) {
-                // make a caterpillar
-                List<String> sTaxa = m_taxonset.get().asStringList();
-                Node left = new SeedbankNode();
-                left.setNr(0);
-                left.setHeight(0);
-                left.setID(sTaxa.get(0));
-                for (int i = 1; i < sTaxa.size(); i++) {
-                    Node right = new SeedbankNode();
-                    right.setNr(i);
-                    right.setHeight(0);
-                    right.setID(sTaxa.get(i));
-                    Node parent = new SeedbankNode();
-                    parent.setNr(sTaxa.size() + i - 1);
-                    parent.setHeight(i);
-                    left.setParent(parent);
-                    parent.setLeft(left);
-                    right.setParent(parent);
-                    parent.setRight(right);
-                    left = parent;
-                }
-                root = left;
-                leafNodeCount = sTaxa.size();
-                nodeCount = leafNodeCount * 2 - 1;
-                internalNodeCount = leafNodeCount - 1;
-
-            } else {
-                // make dummy tree with a single root node
-                root = new SeedbankNode();
-                root.setNr(0);
-                root.setTree(this);
-                nodeCount = 1;
-                internalNodeCount = 0;
-                leafNodeCount = 1;
-            }
-        }
-
-        if (nodeCount >= 0) {
-            initArrays();
-        }
         
         typeLabel = typeLabelInput.get();
+        activeTypeName = activeTypeNameInput.get();
+        dormantTypeName = dormantTypeNameInput.get();
         
         processTraits(m_traitList.get());
-
-        // Ensure tree is compatible with traits.
-        if (hasDateTrait())
-            adjustTreeNodeHeights(root);
-        
      
      // SCMTT
      // Obtain required parameters from inputs:
@@ -171,25 +124,12 @@ public class SeedbankTree extends Tree {
      // Obtain leaf colours from explicit input or alignment:
         leafTypes = Lists.newArrayList();
         leafNames = Lists.newArrayList();
-        if (leafTypesInput.get() != null) {
-            for (int i=0; i<leafTypesInput.get().getDimension(); i++) {
-                leafTypes.add(leafTypesInput.get().getValue(i));
-                leafNames.add(String.valueOf(i));
-            }
-        } else {
-            // Fill leaf colour array:
-            if (hasTypeTrait()) {
-                for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
-//                	leafTypes.add(typeTraitSet.getValue(typeTraitSet.taxaInput.get().asStringList().get(i));
-                    leafTypes.add(migModel.getTypeSet().getTypeIndex((typeTraitSet.getStringValue(i))));
-                    leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
-                }
-            } else {
-                throw new IllegalArgumentException("Either leafColours or "
-                    + "trait set (with name '" + typeLabel + "') "
-                    + "must be provided.");
-            }
-
+     
+	    // Fill leaf colour array:
+        assert(hasTypeTrait());
+        for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
+            leafTypes.add(transitionModel.getTypeIndex((typeTraitSet.getStringValue(i))));
+            leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
         }
 
 //        // Count unique leaf types:
@@ -223,18 +163,6 @@ public class SeedbankTree extends Tree {
         this.internalNodeCount = this.root.getInternalNodeCount();
         this.leafNodeCount = this.root.getLeafNodeCount();
         initArrays();
-
-        // Write tree to disk if requested
-        if (outputFileNameInput.get() != null) {
-            try (PrintStream pstream = new PrintStream(outputFileNameInput.get())) {
-                pstream.println("#nexus\nbegin trees;");
-                pstream.println("tree TREE_1 = " + toString() + ";");
-                pstream.println("end;");
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException("Error opening file '"
-                        + outputFileNameInput.get() + "' for writing.");
-            }
-        }
 	}
 	
     @Override
@@ -249,44 +177,13 @@ public class SeedbankTree extends Tree {
             }
         }
 
-        // Use explicitly-identified type trait set if available.
-        // Seems dumb, but needed for BEAUti as ListInputEditors
-        // muck things up...
-        if (typeTraitInput.get() != null)
-            typeTraitSet = typeTraitInput.get();
-
-        // Construct type list.
+        // typeTraitSet must exist
         if (typeTraitSet == null) {
-            if (getTaxonset() != null) {
-                TraitSet dummyTraitSet = new TraitSet();
-
-                StringBuilder sb = new StringBuilder();
-                for (int i=0; i<getTaxonset().getTaxonCount(); i++) {
-                    if (i>0)
-                        sb.append(",\n");
-                    sb.append(getTaxonset().getTaxonId(i)).append("=NOT_SET");
-                }
-                try {
-                    dummyTraitSet.initByName(
-                        "traitname", "type",
-                        "taxa", getTaxonset(),
-                        "value", sb.toString());
-                    dummyTraitSet.setID("typeTraitSetInput.t:"
-                        + BeautiDoc.parsePartition(getID()));
-                    setTypeTrait(dummyTraitSet);
-
-//                    if (typeSet != null)
-//                        typeSet.addTypesFromTypeTraitSet(dummyTraitSet);
-                } catch (Exception ex) {
-                    System.out.println("Error setting default type trait.");
-                }
-            }
+        	String errorString = String.format(
+        			"A type trait set (with name '%s' and types '%s' and '%s') must be provided", 
+        			typeLabel, activeTypeName, dormantTypeName);
+        	throw new IllegalArgumentException(errorString); 
         }
-
-//        if (typeSet == null) {
-//            typeSet = new TypeSet();
-//            typeSet.initByName("typeTraitSet", typeTraitSet);
-//        }
     }
 	
     /**
@@ -359,7 +256,7 @@ public class SeedbankTree extends Tree {
     }
     
     /**
-     *      * Deep copy, returns a completely new seedbank tree.
+     * Deep copy, returns a completely new seedbank tree.
      *
      * @return a deep copy of this seedbank tree
      */
@@ -796,6 +693,22 @@ public class SeedbankTree extends Tree {
             n++;
 
         return nodeList.get(n);
+    }
+    
+    // Methods for StateNodeInitialiser interface
+    
+    @Override
+    public void initStateNodes() {
+        if (m_initial.get() != null) {
+            m_initial.get().assignFromWithoutID(this);
+        }
+    }
+
+    @Override
+    public void getInitialisedStateNodes(final List<StateNode> stateNodes) {
+        if (m_initial.get() != null) {
+            stateNodes.add(m_initial.get());
+        }
     }
     
     /**
