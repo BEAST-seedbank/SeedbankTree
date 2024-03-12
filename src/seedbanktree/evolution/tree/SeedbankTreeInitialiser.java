@@ -79,7 +79,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
    	    // Fill leaf colour array:
            assert(hasTypeTrait());
            for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
-               leafTypes.add(transitionModel.getTypeIndex((typeTraitSet.getStringValue(i))));
+               leafTypes.add(getTypeIndex((typeTraitSet.getStringValue(i))));
                leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
            }
 

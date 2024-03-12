@@ -13,22 +13,18 @@ import beast.base.inference.parameter.RealParameter;
 public class TransitionModel extends CalculationNode {
 	
 	// Inputs
-	// seedbank intensity c / rate
+	// seedbank intensity / rate / c
 	public Input<Function> rateInput = new Input<> ("rate", "Transition rate."); 
 
 	// relative active population size K
+	// Active pop = K * Dormant pop
 	public Input<Function> KInput = new Input<> ("K", "Ratio of active to dormant population."); 
 	
+	// Active population size
     public Input<Function> activeSizeInput = new Input<>(
             "activeSize",
             "Active population size.",
             Validate.REQUIRED);
-    
-    public Input<String> activeTypeNameInput = new Input<>(
-            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
-    
-    public Input<String> dormantTypeNameInput = new Input<>(
-            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
 	
     //Shadow inputs
     protected Function rate;
@@ -54,24 +50,21 @@ public class TransitionModel extends CalculationNode {
         if (activeSize instanceof RealParameter)
             ((RealParameter)activeSize).setLower(Math.max(((RealParameter)activeSize).getLower(), 0.0));
         
-        activeTypeName = activeTypeNameInput.get();
-        dormantTypeName = dormantTypeNameInput.get();
     }
     
     /**
-     * Obtain element of rate matrix for migration model for use in likelihood
-     * calculation.  (May be switched to zero in BSSVS calculation.)
+     * Returns rate of migration
      *
-     * @param i
-     * @param j
-     * @return Rate matrix element.
+     * @param i, from type
+     * @param j, to type
+     * @return rate
      */
     public double getBackwardRate(int i, int j) {
-        if (i==j) {
+        if ( i == j ) {
             return 0;
-        } else if (i==1 && j==0) {
+        } else if ( i == 1 && j == 0) {
         	return rate.getArrayValue();
-        } else { //(i==0 && j==1)
+        } else { //( i == 0 && j == 1 )
         	return rate.getArrayValue() * K.getArrayValue();
         } 
     }
@@ -88,19 +81,6 @@ public class TransitionModel extends CalculationNode {
         } else { // i == 0
         	return activeSize.getArrayValue() / K.getArrayValue();
         }
-    }
-    
-    /**
-     * @param typeName name of type
-     * @return numerical index representing type
-     */
-    public int getTypeIndex(String typeName) {
-    	if (typeName == activeTypeName) {
-    		return 1;
-    	} else if (typeName == dormantTypeName) {
-    		return 0;
-    	} else 
-            throw new IllegalArgumentException("TypeSet does not contain type with name " + typeName);
     }
     
     /**

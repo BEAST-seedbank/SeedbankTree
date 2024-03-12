@@ -187,6 +187,32 @@ public class SeedbankTree extends Tree {
         return typeLabel;
     }
     
+    /**
+     * @param typeName name of type
+     * @return numerical index representing type
+     */
+    public int getTypeIndex(String typeName) {
+    	if (typeName == activeTypeName) {
+    		return 1;
+    	} else if (typeName == dormantTypeName) {
+    		return 0;
+    	} else 
+            throw new IllegalArgumentException("TypeSet does not contain type with name " + typeName);
+    }
+    
+    /**
+     * @param typeIdx numerical index representing type
+     * @return name of type
+     */
+    public String getTypeName(int typeIdx) {
+    	if (typeIdx == 1)
+    		return activeTypeName;
+    	else if (typeIdx == 0)
+			return dormantTypeName;
+		else 
+            throw new IllegalArgumentException("typeIdx should be either 0 or 1 and not " + typeIdx);
+    }
+    
     @Override
     public final void initArrays() {
         // initialise tree-as-array representation + its stored variant
