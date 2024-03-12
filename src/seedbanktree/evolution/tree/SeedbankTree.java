@@ -23,11 +23,9 @@ import beast.base.util.Randomizer;
 import beastfx.app.inputeditor.BeautiDoc;
 
 
-public class SeedbankTree extends Tree implements StateNodeInitialiser {
+public class SeedbankTree extends Tree {
 	
-	// Fields
-	
-	// Inputs MTT
+	// Inputs
 	public Input<String> typeLabelInput = new Input<>("typeLabel", "Label for type traits (default 'type')", "type");
 	
     public Input<TraitSet> typeTraitInput = new Input<>("typeTrait", "Type trait set.  Used only by BEAUti.");
@@ -37,138 +35,98 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
     
     public Input<String> dormantTypeNameInput = new Input<>(
             "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
-    
-    // Inputs SCMTT
-    public Input<TransitionModel> transitionModelInput = new Input<>(
-            "transitionModel,",
-            "Transition model to use in simulator.",
-            Validate.REQUIRED);
-    
-	// Shadow inputs MTT
-	private String typeLabel;
-    private TraitSet typeTraitSet;
-    private String activeTypeName;
-    private String dormantTypeName;
-    
-    //SCMTT
-    protected TransitionModel transitionModel;
-    
-    private List<Integer> leafTypes;
-    private List<String> leafNames;
-    private List<Double> leafTimes;
-    private int nLeaves;
-    
-    /*
-     * Other private fields and classes:
-     */
-    private abstract class SBEvent {
-    	
-        double time;
-        int fromType, toType;
 
-    }
-
-    private class CoalescenceEvent extends SBEvent {
-
-        public CoalescenceEvent(int type, double time) {
-            this.fromType = type;
-            this.toType = type;
-            this.time = time;
-        }
-    }
-
-    private class MigrationEvent extends SBEvent {
-
-        public MigrationEvent(int fromType, int toType, double time) {
-            this.fromType = fromType;
-            this.toType = toType;
-            this.time = time;
-        }
-    }
     
-    private class NullEvent extends SBEvent {
-        public NullEvent() {
-            this.time = Double.POSITIVE_INFINITY;
-        }
-    }
-    
+	// Shadow inputs
+	protected String typeLabel;
+	protected TraitSet typeTraitSet;
+	protected String activeTypeName;
+	protected String dormantTypeName;
 	
 	@Override
 	public void initAndValidate() {
-		// MTT
 		// If an initial tree is given as input
-		if (m_initial.get() != null) {
+		if (m_initial.get() != null && !(this instanceof StateNodeInitialiser)) {
             
             if (!(m_initial.get() instanceof SeedbankTree)) {
                 throw new IllegalArgumentException("Attempted to initialise "
                         + "seedbank tree with regular tree object.");
             }
             
-            SeedbankTree other = (SeedbankTree)m_initial.get();
+            SeedbankTree other = (SeedbankTree) m_initial.get();
             root = other.root.copy();
             nodeCount = other.nodeCount;
             internalNodeCount = other.internalNodeCount;
             leafNodeCount = other.leafNodeCount;
         }
+		
+        if (nodeCount < 0) {
+            if (m_taxonset.get() != null) {
+                makeCaterpillar(0, 1, false);
+            } else {
+                // make dummy tree with a single root node
+                root = new SeedbankNode();
+                root.setNr(0);
+                root.setTree(this);
+                nodeCount = 1;
+                internalNodeCount = 0;
+                leafNodeCount = 1;
+            }
+        }
         
+        // nodeCount could be < 0 if m.taxonset.get() != null but is of size 0
+		if (nodeCount >= 0) {
+            initArrays();
+        }
+		
         typeLabel = typeLabelInput.get();
         activeTypeName = activeTypeNameInput.get();
         dormantTypeName = dormantTypeNameInput.get();
         
         processTraits(m_traitList.get());
-     
-     // SCMTT
-     // Obtain required parameters from inputs:
-        transitionModel = transitionModelInput.get();
         
-     // Obtain leaf colours from explicit input or alignment:
-        leafTypes = Lists.newArrayList();
-        leafNames = Lists.newArrayList();
-     
-	    // Fill leaf colour array:
-        assert(hasTypeTrait());
-        for (int i = 0; i<typeTraitSet.taxaInput.get().asStringList().size(); i++) {
-            leafTypes.add(transitionModel.getTypeIndex((typeTraitSet.getStringValue(i))));
-            leafNames.add(typeTraitSet.taxaInput.get().asStringList().get(i));
-        }
-
-//        // Count unique leaf types:
-//        int nUniqueLeafTypes = new HashSet<>(leafTypes).size();
-//        if (nUniqueLeafTypes > migModel.getNTypes())
-//            throw new IllegalArgumentException("There are " + nUniqueLeafTypes
-//                    + " unique leaf types but the model only includes "
-//                    + migModel.getNTypes() + " unique types!");
-
-        nLeaves = leafTypes.size();
-        
-        // Set leaf times if specified:
-        leafTimes = Lists.newArrayList();
-        if (timeTraitSet == null) {
-            for (int i=0; i<nLeaves; i++)
-                leafTimes.add(0.0);
-        } else {
-            if (timeTraitSet.taxaInput.get().asStringList().size() != nLeaves)
-                throw new IllegalArgumentException("Number of time traits "
-                        + "doesn't match number of leaf colours supplied.");
-            
-            for (int i=0; i<nLeaves; i++)
-                leafTimes.add(timeTraitSet.getValue(i));
-        }
-        
-
-        // Construct tree
-        this.root = simulateTree();
-        this.root.setParent(null);
-        this.nodeCount = this.root.getNodeCount();
-        this.internalNodeCount = this.root.getInternalNodeCount();
-        this.leafNodeCount = this.root.getLeafNodeCount();
-        initArrays();
+     // Ensure tree is compatible with traits.
+        if (hasDateTrait())
+            adjustTreeNodeHeights(root);
 	}
+	
+	@Override
+	public void makeCaterpillar(final double minInternalHeight, final double step, final boolean finalize) {
+        // make a caterpillar
+        final List<String> taxa = m_taxonset.get().asStringList();
+        Node left = new SeedbankNode();
+        left.setNr(0);
+        left.setHeight(0);
+        left.setID(taxa.get(0));
+        for (int i = 1; i < taxa.size(); i++) {
+            final Node right = new SeedbankNode();
+            right.setNr(i);
+            right.setHeight(0);
+            right.setID(taxa.get(i));
+            final Node parent = new SeedbankNode();
+            parent.setNr(taxa.size() + i - 1);
+            parent.setHeight(minInternalHeight + i * step);
+            left.setParent( parent);
+            parent.setLeft(left);
+            right.setParent(parent);
+            parent.setRight(right);
+            left = parent;
+        }
+        root = left;
+        leafNodeCount = taxa.size();
+        nodeCount = leafNodeCount * 2 - 1;
+        internalNodeCount = leafNodeCount - 1;
+
+        if (finalize) {
+            initArrays();
+        }
+    }
 	
     @Override
     protected void processTraits(List<TraitSet> traitList) {
         super.processTraits(traitList);
         
+        // Only one way to get typeTraitSet at the moment
         // Record trait set associated with leaf types.
         for (TraitSet traitSet : traitList) {
             if (traitSet.getTraitName().equals(typeLabel)) {
@@ -176,7 +134,7 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
                 break;
             }
         }
-
+        	
         // typeTraitSet must exist
         if (typeTraitSet == null) {
         	String errorString = String.format(
@@ -280,20 +238,20 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
      */
     @Override
     public void assignFrom(StateNode other) {
-        SeedbankTree mtTree = (SeedbankTree) other;
+        SeedbankTree sbTree = (SeedbankTree) other;
 
-        SeedbankNode[] mtNodes = new SeedbankNode[mtTree.getNodeCount()];
-        for (int i=0; i<mtTree.getNodeCount(); i++)
-            mtNodes[i] = new SeedbankNode();
+        SeedbankNode[] sbNodes = new SeedbankNode[sbTree.getNodeCount()];
+        for (int i=0; i<sbTree.getNodeCount(); i++)
+        	sbNodes[i] = new SeedbankNode();
 
-        ID = mtTree.ID;
-        root = mtNodes[mtTree.root.getNr()];
-        root.assignFrom(mtNodes, mtTree.root);
+        ID = sbTree.ID;
+        root = sbNodes[sbTree.root.getNr()];
+        root.assignFrom(sbNodes, sbTree.root);
         root.setParent(null);
 
-        nodeCount = mtTree.nodeCount;
-        internalNodeCount = mtTree.internalNodeCount;
-        leafNodeCount = mtTree.leafNodeCount;
+        nodeCount = sbTree.nodeCount;
+        internalNodeCount = sbTree.internalNodeCount;
+        leafNodeCount = sbTree.leafNodeCount;
         initArrays();
     }
     
@@ -304,23 +262,23 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
      */
     @Override
     public void assignFromFragile(StateNode other) {
-    	SeedbankTree mtTree = (SeedbankTree) other;
+    	SeedbankTree sbTree = (SeedbankTree) other;
         if (m_nodes == null) {
             initArrays();
         }
-        root = m_nodes[mtTree.root.getNr()];
-        Node[] otherNodes = mtTree.m_nodes;
+        root = m_nodes[sbTree.root.getNr()];
+        Node[] otherNodes = sbTree.m_nodes;
         int iRoot = root.getNr();
         assignFromFragileHelper(0, iRoot, otherNodes);
         
         root.setHeight(otherNodes[iRoot].getHeight());
         root.setParent(null);
         
-        SeedbankNode mtRoot = (SeedbankNode)root;
-        mtRoot.nodeType = ((SeedbankNode)(otherNodes[iRoot])).nodeType;
-        mtRoot.changeTimes.clear();
-        mtRoot.changeTypes.clear();
-        mtRoot.nTypeChanges = 0;
+        SeedbankNode sbRoot = (SeedbankNode)root;
+        sbRoot.nodeType = ((SeedbankNode)(otherNodes[iRoot])).nodeType;
+        sbRoot.changeTimes.clear();
+        sbRoot.changeTypes.clear();
+        sbRoot.nTypeChanges = 0;
         
         if (otherNodes[iRoot].getLeft() != null) {
             root.setLeft(m_nodes[otherNodes[iRoot].getLeft().getNr()]);
@@ -336,7 +294,7 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
     }
 
     /**
-     * helper to assignFromFragile *
+     * helper to assignFromFragile
      */
     private void assignFromFragileHelper(int iStart, int iEnd, Node[] otherNodes) {
         for (int i = iStart; i < iEnd; i++) {
@@ -373,7 +331,6 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
         return timesAreValid(root) && typesAreValid(root);
     }
     
-    // check that changes decrease in time from parent to child
     private boolean timesAreValid(Node node) {
         for (Node child : node.getChildren()) {
             double lastHeight = node.getHeight();
@@ -392,16 +349,30 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
         
         return true;
     }
-
+    
     private boolean typesAreValid(Node node) {
-        for (Node child : node.getChildren()) {
-            if (((SeedbankNode)node).getNodeType() != ((SeedbankNode)child).getFinalType())
-                return false;
-            
-            if (!typesAreValid(child))
-                return false;
-        }
-        
+    	assert (node instanceof SeedbankNode);
+    	
+    	if (!node.isLeaf()) { 
+    		if (((SeedbankNode)node).getNodeType() != 1)
+    			return false;
+    		
+    		for (Node child : node.getChildren()) {
+                if (((SeedbankNode)child).getFinalType() != 1)
+                    return false;
+                
+                int lastType=1;
+                for (int idx=((SeedbankNode)child).getChangeCount()-2; idx>=0; idx--) { 
+                    int thisType = ((SeedbankNode)child).getChangeType(idx);
+                    if (thisType == lastType) // types have to alternate
+                        return false;
+                    lastType = thisType;
+                }
+                
+                if (!typesAreValid(child))
+                    return false;
+            }
+    	}
         return true;
     }
     
@@ -422,362 +393,4 @@ public class SeedbankTree extends Tree implements StateNodeInitialiser {
         
         return count;
     }
-    
-    // SCMTT Methods
-    
-    /**
-     * Generates tree using the specified list of active leaf nodes using the
-     * structured coalescent.
-     *
-     * @return Root node of generated tree.
-     */
-    private SeedbankNode simulateTree() {
-
-        // Initialise node creation counter:
-        int nextNodeNr = 0;
-
-        // Initialise node lists:
-        List<List<SeedbankNode>> liveNodes = Lists.newArrayList();
-        List<List<SeedbankNode>> deadNodes = Lists.newArrayList();
-//        for (int i = 0; i < migModel.getNTypes(); i++) {
-//            activeNodes.add(new ArrayList<>());
-//            inactiveNodes.add(new ArrayList<>());
-//        }
-        liveNodes.add(new ArrayList<>());
-        liveNodes.add(new ArrayList<>());
-        deadNodes.add(new ArrayList<>());
-        deadNodes.add(new ArrayList<>());
-
-        // Add nodes to dead nodes list:
-        for (int l = 0; l < nLeaves; l++) {
-            SeedbankNode node = new SeedbankNode();
-            node.setNr(nextNodeNr);
-            node.setID(leafNames.get(l));
-            deadNodes.get(leafTypes.get(l)).add(node);
-            node.setHeight(leafTimes.get(l));
-            node.setNodeType(leafTypes.get(l));
-
-            nextNodeNr++;
-        }
-        
-        // Sort nodes in dead nodes lists in order of increasing age:
-//        for (int i=0; i<migModel.getNTypes(); i++) {
-        for (int i=0; i<2; i++) {
-            Collections.sort(deadNodes.get(i),
-                (SeedbankNode node1, SeedbankNode node2) -> {
-                    double dt = node1.getHeight()-node2.getHeight();
-                    if (dt<0)
-                        return -1;
-                    if (dt>0)
-                        return 1;
-                    
-                    return 0;
-                });
-        }
-
-        // Allocate propensity lists:
-        List<Double> migrationProp = new ArrayList<>();
-        Double coalesceProp = 0.0;
-        double t = 0.0;
-
-        while (totalNodesRemaining(liveNodes)>1
-                || totalNodesRemaining(deadNodes)>0) {
-
-            // Step 1: Calculate propensities.
-            double totalProp = updatePropensities(migrationProp, coalesceProp,
-                    liveNodes);
-            
-            // Step 2: Determine next event.
-            SBEvent event = getNextEvent(migrationProp, coalesceProp,
-                    totalProp, t);
-
-            // Step 3: Handle activation of nodes:
-            SeedbankNode nextNode = null;
-            int nextNodeType = -1;
-            double nextTime = Double.POSITIVE_INFINITY;
-//            for (int i=0; i<migModel.getNTypes(); i++) {
-            for (int i=0; i<2; i++) {
-                if (deadNodes.get(i).isEmpty())
-                    continue;
-                
-                if (deadNodes.get(i).get(0).getHeight()<nextTime) {
-                    nextNode = deadNodes.get(i).get(0);
-                    nextTime = nextNode.getHeight();
-                    nextNodeType = i;
-                }
-            }
-            if (nextTime < event.time) {
-                t = nextTime;
-                liveNodes.get(nextNodeType).add(nextNode);
-                deadNodes.get(nextNodeType).remove(0);
-                continue;
-            }
-            
-            // Step 4: Place event on tree.
-            nextNodeNr = updateTree(liveNodes, event, nextNodeNr);
-
-            // Step 5: Keep track of time increment.
-            t = event.time;
-        }
-
-        // TODO: assert here that the remaining live node must be of the active type?
-        // Return sole remaining live node as root:
-        for (List<SeedbankNode> nodeList : liveNodes)
-            if (!nodeList.isEmpty())
-                return nodeList.get(0);
-
-        // Should not fall through.
-        throw new RuntimeException("No live nodes remaining end of "
-                + "structured coalescent simulation!");
-    }
-    
-    /**
-     * Obtain propensities (instantaneous reaction rates) for coalescence and
-     * migration events.
-     *
-     * @param migrationProp
-     * @param coalesceProp
-     * @param activeNodes
-     * @return Total reaction propensity.
-     */
-    private double updatePropensities(List<Double> migrationProp,
-            Double coalesceProp, List<List<SeedbankNode>> liveNodes) {
-
-        double totalProp = 0.0;
-        
-        double N_a = transitionModel.getPopSize(1);
-        int k_a = liveNodes.get(1).size();
-        int k_d = liveNodes.get(0).size();
-        double m_ad = transitionModel.getBackwardRate(1, 0);
-        double m_da = transitionModel.getBackwardRate(0, 1);
-        
-        coalesceProp = k_a * (k_a - 1) / (2.0 * N_a);
-        totalProp += coalesceProp;
-        
-        migrationProp.set(1, k_a * m_ad);
-        migrationProp.set(0, k_d * m_da);
-        totalProp += migrationProp.get(1);
-        totalProp += migrationProp.get(0);
-
-        return totalProp;
-
-    }
-    
-    /**
-     * Calculate total number of live nodes remaining.
-     *
-     * @param liveNodes
-     * @return Number of live nodes remaining.
-     */
-    private int totalNodesRemaining(List<List<SeedbankNode>> liveNodes) {
-        return liveNodes.get(0).size() + liveNodes.get(1).size();
-    }
-    
-    /**
-     * Obtain type and location of next reaction.
-     *
-     * @param migrateProp Current migration propensities.
-     * @param coalesceProp Current coalescence propensities.
-     * @param t Current time.
-     * @return Event object describing next event.
-     */
-    private SBEvent getNextEvent(List<Double> migrateProp,
-            Double coalesceProp, double totalProp, double t) {
-
-        // Get time of next event:
-        if (totalProp>0.0)
-            t += Randomizer.nextExponential(totalProp);
-        else
-            return new NullEvent();
-
-        // Select event type:
-        double U = Randomizer.nextDouble() * totalProp;
-        
-        if (U < coalesceProp) 
-        	return new CoalescenceEvent(1, t);
-        else
-        	U -= coalesceProp;
-        
-        if (U < migrateProp.get(0))
-            return new MigrationEvent(0, 1, t);
-        else
-            U -= migrateProp.get(0);
-        
-        if (U < migrateProp.get(1))
-            return new MigrationEvent(1, 0, t);
-        else
-            U -= migrateProp.get(1);
-
-        // Should not fall through.
-        throw new RuntimeException("Structured coalescenct event selection error.");
-    }
-    
-    /**
-    * Update tree with result of latest event.
-    *
-    * @param liveNodes
-    * @param event
-    * @param nextNodeNr Integer identifier of last node added to tree.
-    * @return Updated nextNodeNr.
-    */
-   private int updateTree(List<List<SeedbankNode>> liveNodes, SBEvent event,
-           int nextNodeNr) {
-
-       if (event instanceof CoalescenceEvent) {
-
-           // Randomly select node pair from active nodes:
-    	   SeedbankNode daughter = selectRandomNode(liveNodes.get(1));
-    	   SeedbankNode son = selectRandomSibling(liveNodes.get(1), daughter);
-
-           // Create new parent node with appropriate ID and time:
-    	   SeedbankNode parent = new SeedbankNode();
-           parent.setNr(nextNodeNr);
-           parent.setID(String.valueOf(nextNodeNr));
-           parent.setHeight(event.time);
-           nextNodeNr++;
-
-           // Connect new parent to children:
-           parent.setLeft(daughter);
-           parent.setRight(son);
-           son.setParent(parent);
-           daughter.setParent(parent);
-
-           // Ensure new parent is set to correct colour:
-           parent.setNodeType(event.fromType);
-
-           // Update activeNodes:
-           liveNodes.get(1).remove(son);
-           int idx = liveNodes.get(1).indexOf(daughter);
-           liveNodes.get(1).set(idx, parent);
-
-       } else { // Migration event ... what happens if Null event?
-
-           // Randomly select node with chosen colour:
-    	   SeedbankNode migrator = selectRandomNode(liveNodes.get(event.fromType));
-
-           // Record colour change in change lists:
-           migrator.addChange(event.toType, event.time);
-
-           // Update activeNodes:
-           liveNodes.get(event.fromType).remove(migrator);
-           liveNodes.get(event.toType).add(migrator);
-
-       }
-
-       return nextNodeNr;
-
-   }
-    
-    /**
-     * Use beast RNG to select random node from list.
-     *
-     * @param nodeList
-     * @return A randomly selected node.
-     */
-    private SeedbankNode selectRandomNode(List<SeedbankNode> nodeList) {
-        return nodeList.get(Randomizer.nextInt(nodeList.size()));
-    }
-
-    /**
-     * Return random node from list, excluding given node.
-     *
-     * @param nodeList
-     * @param node
-     * @return Randomly selected node.
-     */
-    private SeedbankNode selectRandomSibling(List<SeedbankNode> nodeList, Node node) {
-
-        int n = Randomizer.nextInt(nodeList.size() - 1);
-        int idxToAvoid = nodeList.indexOf(node);
-        if (n >= idxToAvoid)
-            n++;
-
-        return nodeList.get(n);
-    }
-    
-    // Methods for StateNodeInitialiser interface
-    
-    @Override
-    public void initStateNodes() {
-        if (m_initial.get() != null) {
-            m_initial.get().assignFromWithoutID(this);
-        }
-    }
-
-    @Override
-    public void getInitialisedStateNodes(final List<StateNode> stateNodes) {
-        if (m_initial.get() != null) {
-            stateNodes.add(m_initial.get());
-        }
-    }
-    
-    /**
-     * Generates an ensemble of trees from the structured coalescent for testing
-     * coloured tree-space samplers.
-     *
-     * @param argv
-     * @throws java.lang.Exception
-     */
-    public static void main(String[] argv) throws Exception {
-        
-//        // Set up migration model.
-//        RealParameter rateMatrix = new RealParameter();
-//        rateMatrix.initByName(
-//                "value", "0.05",
-//                "dimension", "12");
-//        RealParameter popSizes = new RealParameter();
-//        popSizes.initByName(
-//                "value", "7.0",
-//                "dimension", "4");
-//        SCMigrationModel migrationModel = new SCMigrationModel();
-//        migrationModel.initByName(
-//                "rateMatrix", rateMatrix,
-//                "popSizes", popSizes);
-//
-//        // Specify leaf types:
-//        IntegerParameter leafTypes = new IntegerParameter();
-//        leafTypes.initByName(
-//                "value", "0 0 0");
-//
-//        // Generate ensemble:
-//        int reps = 1000000;
-//        double[] heights = new double[reps];
-//        double[] changes = new double[reps];
-//
-//        long startTime = System.currentTimeMillis();
-//        StructuredCoalescentMultiTypeTree sctree;
-//        sctree = new StructuredCoalescentMultiTypeTree();
-//        for (int i = 0; i < reps; i++) {
-//
-//            if (i % 1000 == 0)
-//                System.out.format("%d reps done\n", i);
-//
-//            sctree.initByName(
-//                    "migrationModel", migrationModel,
-//                    "leafTypes", leafTypes,
-//                    "nTypes", 4);
-//
-//            heights[i] = sctree.getRoot().getHeight();
-//            changes[i] = sctree.getTotalNumberOfChanges();
-//        }
-//
-//        long time = System.currentTimeMillis() - startTime;
-//
-//        System.out.printf("E[T] = %1.4f +/- %1.4f\n",
-//                DiscreteStatistics.mean(heights), DiscreteStatistics.stdev(heights) / Math.sqrt(reps));
-//        System.out.printf("V[T] = %1.4f\n", DiscreteStatistics.variance(heights));
-//
-//        System.out.printf("E[C] = %1.4f +/- %1.4f\n",
-//                DiscreteStatistics.mean(changes), DiscreteStatistics.stdev(changes) / Math.sqrt(reps));
-//        System.out.printf("V[C] = %1.4f\n", DiscreteStatistics.variance(changes));
-//
-//        System.out.printf("Took %1.2f seconds\n", time / 1000.0);
-//
-//        try (PrintStream outStream = new PrintStream("heights.txt")) {
-//            outStream.println("h c");
-//            for (int i = 0; i < reps; i++)
-//                outStream.format("%g %g\n", heights[i], changes[i]);
-//        }
-    }
-    
 }

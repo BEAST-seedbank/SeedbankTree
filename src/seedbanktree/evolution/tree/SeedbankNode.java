@@ -165,13 +165,6 @@ public class SeedbankNode extends Node {
 
         return node;
     }
-    
-    /**
-     * **************************
-     * Methods ported from Node *
-     ***************************
-     */
-
 
     /**
      * @return (deep) copy of node
@@ -212,13 +205,13 @@ public class SeedbankNode extends Node {
         parent = null;
         ID = node.getID();
         
-        SeedbankNode mtNode = (SeedbankNode)node;
-        nTypeChanges = mtNode.nTypeChanges;
+        SeedbankNode sbNode = (SeedbankNode)node;
+        nTypeChanges = sbNode.nTypeChanges;
         changeTimes.clear();
-        changeTimes.addAll(mtNode.changeTimes);
+        changeTimes.addAll(sbNode.changeTimes);
         changeTypes.clear();
-        changeTypes.addAll(mtNode.changeTypes);
-        nodeType = mtNode.nodeType;
+        changeTypes.addAll(sbNode.changeTypes);
+        nodeType = sbNode.nodeType;
         
         if (node.getLeft()!=null) {
             setLeft(nodes[node.getLeft().getNr()]);
