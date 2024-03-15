@@ -14,11 +14,17 @@ public class TransitionModel extends CalculationNode {
 	
 	// Inputs
 	// seedbank intensity / rate / c
-	public Input<Function> rateInput = new Input<> ("rate", "Transition rate."); 
+	public Input<Function> rateInput = new Input<> (
+			"rate", 
+			"Transition rate.", 
+			Validate.REQUIRED); 
 
 	// relative active population size K
 	// Active pop = K * Dormant pop
-	public Input<Function> KInput = new Input<> ("K", "Ratio of active to dormant population."); 
+	public Input<Function> KInput = new Input<> (
+			"K", 
+			"Ratio of active to dormant population.", 
+			Validate.REQUIRED); 
 	
 	// Active population size
     public Input<Function> activeSizeInput = new Input<>(
@@ -30,14 +36,11 @@ public class TransitionModel extends CalculationNode {
     protected Function rate;
     protected Function K;
     protected Function activeSize;
-	private String activeTypeName;
-    private String dormantTypeName;
 	
     @Override
     public void initAndValidate() {
     	
     	rate = rateInput.get();
-//    	relativeActiveSize = relativeActiveSizeInput.get();
     	K = KInput.get();
     	activeSize = activeSizeInput.get();
 

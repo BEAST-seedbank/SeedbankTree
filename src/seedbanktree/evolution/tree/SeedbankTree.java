@@ -1,10 +1,6 @@
 package seedbanktree.evolution.tree;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 import com.google.common.collect.Lists;
@@ -16,11 +12,6 @@ import beast.base.evolution.tree.TraitSet;
 import beast.base.evolution.tree.Tree;
 import beast.base.inference.StateNode;
 import beast.base.inference.StateNodeInitialiser;
-import beast.base.inference.parameter.IntegerParameter;
-import beast.base.inference.parameter.RealParameter;
-import beast.base.util.DiscreteStatistics;
-import beast.base.util.Randomizer;
-import beastfx.app.inputeditor.BeautiDoc;
 
 
 public class SeedbankTree extends Tree {
@@ -34,7 +25,7 @@ public class SeedbankTree extends Tree {
             "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
     
     public Input<String> dormantTypeNameInput = new Input<>(
-            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
+            "dormantTypeName", "Name of dormant type.", "dormant", Validate.OPTIONAL);
 
     
 	// Shadow inputs
@@ -42,6 +33,21 @@ public class SeedbankTree extends Tree {
 	protected TraitSet typeTraitSet;
 	protected String activeTypeName;
 	protected String dormantTypeName;
+	
+	// Constructors
+	// Default constructor for beast use
+	public SeedbankTree() {}
+	
+	// For use in initFromFlatTree()
+	public SeedbankTree(Node rootNode) {
+        
+        if (!(rootNode instanceof SeedbankNode))
+            throw new IllegalArgumentException("Attempted to instantiate "
+                    + "seedbank tree with regular root node.");
+        
+        setRoot(rootNode);
+        initArrays();
+    }
 	
 	@Override
 	public void initAndValidate() {
@@ -378,28 +384,309 @@ public class SeedbankTree extends Tree {
     
     private boolean typesAreValid(Node node) {
     	assert (node instanceof SeedbankNode);
+    	SeedbankNode sbNode = (SeedbankNode)node;
     	
-    	if (!node.isLeaf()) { 
-    		if (((SeedbankNode)node).getNodeType() != 1)
+    	if (!sbNode.isLeaf()) { 
+    		if ((sbNode).getNodeType() != 1)
     			return false;
     		
     		for (Node child : node.getChildren()) {
-                if (((SeedbankNode)child).getFinalType() != 1)
-                    return false;
-                
-                int lastType=1;
-                for (int idx=((SeedbankNode)child).getChangeCount()-2; idx>=0; idx--) { 
-                    int thisType = ((SeedbankNode)child).getChangeType(idx);
-                    if (thisType == lastType) // types have to alternate
-                        return false;
-                    lastType = thisType;
-                }
+    			assert (child instanceof SeedbankNode);
+    			SeedbankNode sbChild = (SeedbankNode)child;
+    			
+    			switch (sbChild.getChangeCount()) {
+    				case 0:
+    					if (sbChild.getNodeType() != 1)
+    						return false;
+    					break;
+    					
+    				case 1:
+    					if (sbChild.getNodeType() != 0 || sbChild.getChangeType(0) != 1)
+    						return false;
+    					break;
+    					
+    				default:
+    					if (sbChild.getFinalType() != 1)
+    	                    return false;
+    	                
+    	                int lastType=1;
+    	                for (int idx=sbChild.getChangeCount()-2; idx>=0; idx--) { 
+    	                    int thisType = sbChild.getChangeType(idx);
+    	                    if (thisType == lastType) // types have to alternate
+    	                        return false;
+    	                    lastType = thisType;
+    	                }
+    	                
+    	                if (lastType == sbChild.getNodeType())
+    	                	return false;
+    			}
                 
                 if (!typesAreValid(child))
                     return false;
             }
     	}
+    	
         return true;
+    }
+    
+    /**
+     * Generates a new seedbank tree in which the colours along the branches are
+     * indicated by the traits of single-child nodes.
+     *
+     * This method is useful for interfacing trees coloured externally using the
+     * a ColouredTree instance with methods designed to act on trees coloured
+     * using single-child nodes and their metadata fields.
+     *
+     * Caveat: assumes more than one node exists on tree (i.e. leaf != root)
+     *
+     * @param useTypeStrings whether to use descriptive type strings
+     * @return Flattened tree.
+     */
+    public Tree getFlattenedTree(boolean useTypeStrings) {
+
+        // Create new tree to modify.  Note that copy() doesn't
+        // initialise the node array lists, so initArrays() must
+        // be called manually.
+        Tree flatTree = copy();
+        flatTree.initArrays();
+
+        int nextNodeNr = getNodeCount();
+        Node colourChangeNode;
+
+        // Iterate over nodes
+        for (Node node : getNodesAsArray()) {
+ 
+            SeedbankNode sbNode = (SeedbankNode)node;
+
+            int nodeNum = node.getNr();
+
+            // Root node has no additional changes
+            if (node.isRoot()) {
+                flatTree.getNode(nodeNum).setMetaData(typeLabel,
+                        ((SeedbankNode)(node.getLeft())).getFinalType());
+                continue;
+            }
+
+            Node startNode = flatTree.getNode(nodeNum);
+
+            startNode.setMetaData(typeLabel,
+                    ((SeedbankNode)node).getNodeType());
+            if(useTypeStrings)
+                startNode.metaDataString = String.format("%s=\"%s\"",
+                    typeLabel, getTypeName(sbNode.getNodeType()));
+            else
+                startNode.metaDataString = String.format("%s=%d",
+                    typeLabel, sbNode.getNodeType());
+
+            Node endNode = startNode.getParent();
+            
+            endNode.setMetaData(typeLabel,
+                    ((SeedbankNode)node.getParent()).getNodeType());
+            if(useTypeStrings)
+                endNode.metaDataString = String.format("%s=\"%s\"",
+                    typeLabel, getTypeName(((SeedbankNode)node.getParent()).getNodeType()));
+            else
+                endNode.metaDataString = String.format("%s=%d",
+                    typeLabel, ((SeedbankNode)node.getParent()).getNodeType());
+
+            Node branchNode = startNode;
+            for (int i = 0; i<sbNode.getChangeCount(); i++) {
+
+                // Create and label new node:
+                colourChangeNode = new SeedbankNode();
+                colourChangeNode.setNr(nextNodeNr);
+                colourChangeNode.setID(String.valueOf(nextNodeNr));
+                nextNodeNr += 1;
+
+                // Connect to child and parent:
+                branchNode.setParent(colourChangeNode);
+                colourChangeNode.addChild(branchNode);
+
+                // Ensure height and colour trait are set:
+                colourChangeNode.setHeight(sbNode.getChangeTime(i));
+                colourChangeNode.setMetaData(typeLabel,
+                		sbNode.getChangeType(i));
+                if (useTypeStrings)
+                    colourChangeNode.metaDataString = String.format("%s=\"%s\"",
+                        typeLabel, getTypeName(sbNode.getChangeType(i)));
+                else
+                    colourChangeNode.metaDataString = String.format("%s=%d",
+                        typeLabel, sbNode.getChangeType(i));
+
+                // Update branchNode:
+                branchNode = colourChangeNode;
+            }
+
+            // Ensure final branchNode is connected to the original parent:
+            branchNode.setParent(endNode);
+            if (endNode.getLeft()==startNode)
+                endNode.setLeft(branchNode);
+            else
+                endNode.setRight(branchNode);
+        }
+
+        return flatTree;
+    }
+
+    /**
+     * Initialise colours and tree topology from Tree object in which colour
+     * changes are marked by single-child nodes and colours are stored in
+     * meta-data tags. Node numbers of non-singleton nodes in flat tree
+     * are preserved.
+     *
+     * @param flatTree
+     * @param takeNrsFromFlatTree 
+     * @throws java.lang.Exception 
+     */
+    public void initFromFlatTree(Tree flatTree, boolean takeNrsFromFlatTree) {
+
+        // Build new coloured tree:
+
+        List<Node> activeFlatTreeNodes = new ArrayList<>();
+        List<Node> nextActiveFlatTreeNodes = new ArrayList<>();
+        List<SeedbankNode> activeTreeNodes = new ArrayList<>();
+        List<SeedbankNode> nextActiveTreeNodes = new ArrayList<>();
+
+        // Populate active node lists with root:
+        activeFlatTreeNodes.add(flatTree.getRoot());
+        SeedbankNode newRoot = new SeedbankNode();
+        activeTreeNodes.add(newRoot);
+        
+        // Initialise counter used to number leaves when takeNrsFromFlatTree
+        // is false:
+        int nextNr = 0;
+
+        while (!activeFlatTreeNodes.isEmpty()) {
+
+            nextActiveFlatTreeNodes.clear();
+            nextActiveTreeNodes.clear();
+
+            for (int idx = 0; idx<activeFlatTreeNodes.size(); idx++) {
+                Node flatTreeNode = activeFlatTreeNodes.get(idx);
+                SeedbankNode treeNode = activeTreeNodes.get(idx);
+
+                List<Integer> colours = new ArrayList<>();
+                List<Double> times = new ArrayList<>();
+
+                while (flatTreeNode.getChildCount()==1) {
+                    Object typeObject = flatTreeNode.getMetaData(typeLabel);
+                    int col;
+                    if (typeObject instanceof Integer)
+                        col = (int) typeObject;
+                    else if (typeObject instanceof Double)
+                        col = (int) Math.round((double)typeObject);
+                    else if (typeObject instanceof String) {
+                        try {
+                            col = Integer.parseInt((String) typeObject);
+                        } catch (NumberFormatException ex) {
+                            col = getTypeIndex((String) typeObject);
+                        }
+                    } else
+                        throw new IllegalArgumentException("Unrecognized type metadata.");
+                    colours.add(col);
+
+                    times.add(flatTreeNode.getHeight());
+
+                    flatTreeNode = flatTreeNode.getLeft();
+                }
+
+                // Order changes to being from youngest to oldest:
+                colours = Lists.reverse(colours);
+                times = Lists.reverse(times);
+
+                switch (flatTreeNode.getChildCount()) {
+                    case 0:
+                        // Leaf at base of branch
+                        if (takeNrsFromFlatTree) {
+                            treeNode.setNr(flatTreeNode.getNr());
+                            treeNode.setID(String.valueOf(flatTreeNode.getID()));
+                        } else {
+                            treeNode.setNr(nextNr);
+                            treeNode.setID(String.valueOf(nextNr));
+                            nextNr += 1;
+                        }
+                        break;
+
+                    case 2:
+                        // Non-leaf at base of branch
+                        nextActiveFlatTreeNodes.add(flatTreeNode.getLeft());
+                        nextActiveFlatTreeNodes.add(flatTreeNode.getRight());
+
+                        SeedbankNode daughter = new SeedbankNode();
+                        SeedbankNode son = new SeedbankNode();
+                        treeNode.addChild(daughter);
+                        treeNode.addChild(son);
+                        nextActiveTreeNodes.add(daughter);
+                        nextActiveTreeNodes.add(son);
+
+                        break;
+                }
+
+                // Add type changes to seedbank tree branch:
+                for (int i = 0; i<colours.size(); i++)
+                    treeNode.addChange(colours.get(i), times.get(i));
+
+                // Set node type at base of seedbank tree branch:
+                Object typeObject = flatTreeNode.getMetaData(typeLabel);
+                int nodeType;
+                if (typeObject instanceof Integer)
+                    nodeType = (int)typeObject;
+                else if (typeObject instanceof Double)
+                    nodeType = (int)Math.round((Double)typeObject);
+                else if (typeObject instanceof String) {
+                    try {
+                        nodeType = Integer.parseInt((String) typeObject);
+                    } catch (NumberFormatException ex) {
+                        nodeType = getTypeIndex((String) typeObject);
+                    }
+                } else
+                    throw new IllegalArgumentException("Unrecognised type metadata.");
+
+                treeNode.setNodeType(nodeType);
+
+                // Set node height:
+                treeNode.setHeight(flatTreeNode.getHeight());
+            }
+
+            // Replace old active node lists with new:
+            activeFlatTreeNodes.clear();
+            activeFlatTreeNodes.addAll(nextActiveFlatTreeNodes);
+
+            activeTreeNodes.clear();
+            activeTreeNodes.addAll(nextActiveTreeNodes);
+
+        }
+        
+        
+        // Number internal nodes:
+        numberInternalNodes(newRoot, newRoot.getAllLeafNodes().size());
+        
+        // Assign tree topology:
+        assignFromWithoutID(new SeedbankTree(newRoot));
+        initArrays();
+        
+    }
+    
+    /**
+     * Helper method used by initFromFlattenedTree to assign sensible node numbers
+     * to each internal node.  This is a post-order traversal, meaning the
+     * root is given the largest number.
+     * 
+     * @param node
+     * @param nextNr
+     * @return 
+     */
+    private int numberInternalNodes(Node node, int nextNr) {
+        if (node.isLeaf())
+            return nextNr;
+        
+        for (Node child : node.getChildren())
+            nextNr = numberInternalNodes(child, nextNr);
+        
+        node.setNr(nextNr);
+        node.setID(String.valueOf(nextNr));
+        
+        return nextNr+1;
     }
     
     /**

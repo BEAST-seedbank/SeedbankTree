@@ -9,8 +9,8 @@ public class SeedbankNode extends Node {
 	
 	// Total number of changes on the branch above this node
 	int nTypeChanges = 0;
-    List<Integer> changeTypes = new ArrayList<Integer>();
-    List<Double> changeTimes = new ArrayList<Double>();
+    public List<Integer> changeTypes = new ArrayList<Integer>();
+    public List<Double> changeTimes = new ArrayList<Double>();
     
     // 0 : Dormant, 1: Active
     int nodeType = 0;
