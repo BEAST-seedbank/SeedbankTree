@@ -48,7 +48,7 @@ public class IsValidTest extends TestCase {
 		
 		sbTreeInitializer.initStateNodes();
 		
-		assertTrue("This tree has valid migrations", sbTree.isValid());
+		assertTrue("This tree is valid", sbTree.isValid());
 	}
 	
 	@Test

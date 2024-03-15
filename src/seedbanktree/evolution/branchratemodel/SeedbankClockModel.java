@@ -43,6 +43,7 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 		}
 		
 		tree = treeInput.get();
+		rates = new double[tree.getNodeCount()];
 	}
 	
 	private void calcalateRates(Node node) {

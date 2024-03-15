@@ -5,6 +5,7 @@ import java.util.List;
 import beast.base.core.Description;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
+import beast.base.evolution.alignment.Alignment;
 import beast.base.evolution.tree.TreeParser;
 import beast.base.inference.StateNode;
 import beast.base.inference.StateNodeInitialiser;
@@ -17,6 +18,9 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
 
     public Input<Boolean> adjustTipHeightsInput = new Input<>("adjustTipHeights",
             "Adjust tip heights in tree? (Default false).", false);
+    
+    public Input <Alignment> dataInput = new Input<> ("data", 
+    		"Specifies the sequences represented by the leaves in the tree.");
     
     
 	public SeedbankTreeFromNewick() {
@@ -38,10 +42,10 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
                 "IsLabelledNewick", true,
                 "adjustTipHeights", adjustTipHeightsInput.get(),
                 "singlechild", true,
-                "newick", newickStringInput.get());
+                "newick", newickStringInput.get(),
+                "taxa", dataInput.get());
 
         initFromFlatTree(parser, true);
-//        initOtherFromFlatTree(parser, (SeedbankTree)m_initial.get(), true);
 	}
 	
     // Methods for StateNodeInitialiser interface
