@@ -2,6 +2,7 @@ package seedbanktree.evolution.branchratemodel;
 
 import beast.base.core.Function;
 import beast.base.core.Input;
+import beast.base.core.Input.Validate;
 import beast.base.evolution.branchratemodel.BranchRateModel;
 import beast.base.evolution.tree.Node;
 import beast.base.evolution.tree.Tree;
@@ -10,18 +11,17 @@ import seedbanktree.evolution.tree.SeedbankNode;
 
 public class SeedbankClockModel extends BranchRateModel.Base {
 	
-	final public Input<RealParameter> activeRateParamInput =
-            new Input<>("active rate", "the rate parameter associated with active branchs"); 
+	final public Input<Function> activeRateInput =
+            new Input<>("activeRate", "the rate parameter associated with active branchs", Validate.REQUIRED); 
 	
-	final public Input<RealParameter> dormantRateParamInput =
-            new Input<>("dormant rate", "the rate parameter associated with dormant branchs"); 
+	final public Input<Function> dormantRateInput =
+            new Input<>("dormantRate", "the rate parameter associated with dormant branchs", Validate.REQUIRED); 
 	
 	final public Input<Tree> treeInput =
-            new Input<>("tree", "the tree this relaxed clock is associated with.", Input.Validate.REQUIRED);
+            new Input<>("tree", "the tree this relaxed clock is associated with.", Validate.REQUIRED);
 	
-	private Function meanRate;
-	private RealParameter activeRateParameter;
-	private RealParameter dormantRateParameter;
+	private Function activeRate;
+	private Function dormantRate;
 	private Tree tree;
 	
 	private boolean recompute = true;
@@ -30,29 +30,19 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 	@Override
 	public void initAndValidate() {
 		
-		tree = treeInput.get();;
+		activeRate = activeRateInput.get();
+		if (activeRate instanceof RealParameter) {
+			RealParameter ar = (RealParameter) activeRate;
+			ar.setBounds(Math.max(0.0, ar.getLower()), ar.getUpper());
+		}
 		
-		activeRateParameter = activeRateParamInput.get();
-		if (activeRateParameter.lowerValueInput.get() == null || activeRateParameter.lowerValueInput.get() < 0.0) {
-			activeRateParameter.setLower(0.0);
-        }
-        if (activeRateParameter.upperValueInput.get() == null || activeRateParameter.upperValueInput.get() < 0.0) {
-        	activeRateParameter.setUpper(Double.MAX_VALUE);
-        }
-        
-        dormantRateParameter = dormantRateParamInput.get();
-        if (dormantRateParameter.lowerValueInput.get() == null || dormantRateParameter.lowerValueInput.get() < 0.0) {
-        	dormantRateParameter.setLower(0.0);
-        }
-        if (dormantRateParameter.upperValueInput.get() == null || dormantRateParameter.upperValueInput.get() < 0.0) {
-        	dormantRateParameter.setUpper(Double.MAX_VALUE);
-        }
+		dormantRate = dormantRateInput.get();
+		if (dormantRate instanceof RealParameter) {
+			RealParameter dr = (RealParameter) dormantRate;
+			dr.setBounds(Math.max(0.0, dr.getLower()), dr.getUpper());
+		}
 		
-		meanRate = meanRateInput.get();
-        if (meanRate == null) {
-            meanRate = new RealParameter("1.0");
-        }
-		
+		tree = treeInput.get();
 	}
 	
 	private void calcalateRates(Node node) {
@@ -101,7 +91,6 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 			newRate += (dormantBranchLength / branchLength) * 1;
 			newRate += (activeBranchLength / branchLength) * 1;
 			rates[nodeNumber] = newRate;
-			
 		}
 		
 		if (!node.isLeaf()) {
@@ -119,7 +108,7 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 			}
         }
 
-        return rates[node.getNr()] * meanRate.getArrayValue();
+        return rates[node.getNr()];
 	}
 	
 	@Override
