@@ -9,8 +9,8 @@ public class SeedbankNode extends Node {
 	
 	// Total number of changes on the branch above this node
 	int nTypeChanges = 0;
-    public List<Integer> changeTypes = new ArrayList<Integer>();
-    public List<Double> changeTimes = new ArrayList<Double>();
+    List<Integer> changeTypes = new ArrayList<Integer>();
+    List<Double> changeTimes = new ArrayList<Double>();
     
     // 0 : Dormant, 1: Active
     int nodeType = 0;
@@ -82,7 +82,6 @@ public class SeedbankNode extends Node {
     }
     
     // Change destination of type change
-    // TODO: invalid? 
     public void setChangeType(int idx, int newType) {
         startEditing();
         changeTypes.set(idx, newType);
@@ -101,8 +100,6 @@ public class SeedbankNode extends Node {
     
     // Insert a new change at index idx
     public void insertChange(int idx, int newType, double newTime) {
-    	// TODO: verify change?
-    	// TODO: verify time of change?
         startEditing();
 
         if (idx>nTypeChanges)
