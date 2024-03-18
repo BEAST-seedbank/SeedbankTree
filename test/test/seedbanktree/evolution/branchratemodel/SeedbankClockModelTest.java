@@ -18,19 +18,23 @@ public class SeedbankClockModelTest extends TestCase {
 	@Test
 	public void testSeedbankClockModel() {
 		// Assemble data:
-		Sequence sample1 = new Sequence("sample1", "AAAAA");
-		Sequence sample2 = new Sequence("sample2", "AAAAA");
+		Sequence sample0 = new Sequence("sample0", "AATCGGAGTT");
+		Sequence sample1 = new Sequence("sample1", "ATTACCTCAT");
+		Sequence sample2 = new Sequence("sample2", "CACTGTCATC");
 		
 		Alignment data = new Alignment();
 		data.initByName(
+				"sequence", sample0,
 				"sequence", sample1,
 				"sequence", sample2,
 				"dataType", "nucleotide");
 		
 		// Assemble test tree:
 		String newickStr =
-                        "((sample1[&state=0]:10)[&state=1]:10, sample2[&state=1]:10)[&state=1]:0;";
-
+                        "((sample0[&state=1]:1.0,((sample1[&state=1]:1.0)[&state=0]:1.0)"
+                        + "[&state=1]:1.0)[&state=1]:1.0,((sample2[&state=1]:1.0)"
+                        + "[&state=0]:1.0)[&state=1]:1.0)[&state=1]:0.0;";
+		
 		SeedbankTreeFromNewick sbTreeInitializer = new SeedbankTreeFromNewick();
 		SeedbankTree sbTree = new SeedbankTree();
 		
@@ -47,7 +51,7 @@ public class SeedbankClockModelTest extends TestCase {
 		activeRate.initByName("value", "1.0", "estimate", false);
 		
 		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "1.0", "estimate", false);
+		dormantRate.initByName("value", "0.5", "estimate", false);
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
