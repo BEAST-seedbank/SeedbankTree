@@ -6,6 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/beast2"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/BeastFX"/>
 	<classpathentry kind="lib" path="/beast2/lib/junit/junit-platform-console-standalone-1.8.2.jar"/>
