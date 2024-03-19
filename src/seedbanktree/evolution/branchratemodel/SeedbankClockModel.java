@@ -46,7 +46,7 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 		rates = new double[tree.getNodeCount()];
 	}
 	
-	private void calcalateRates(Node node) {
+	public void calculateRates(Node node) {
 		int nodeNumber = node.getNr();
 		
 		if (node.isRoot()) {
@@ -89,14 +89,14 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 			assert (dormantBranchLength + activeBranchLength == branchLength);
 			
 			double newRate = 0;
-			newRate += (dormantBranchLength / branchLength) * 1;
-			newRate += (activeBranchLength / branchLength) * 1;
+			newRate += (dormantBranchLength / branchLength) * dormantRate.getArrayValue();
+			newRate += (activeBranchLength / branchLength) * activeRate.getArrayValue();
 			rates[nodeNumber] = newRate;
 		}
 		
 		if (!node.isLeaf()) {
-			calcalateRates(node.getLeft());
-			calcalateRates(node.getRight());
+			calculateRates(node.getLeft());
+			calculateRates(node.getRight());
 		}
 	}
 	
@@ -104,7 +104,7 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 	public double getRateForBranch(Node node) {
 		synchronized (this) {
     		if (recompute) {
-    			calcalateRates(tree.getRoot());
+    			calculateRates(tree.getRoot());
                 recompute = false;
 			}
         }
