@@ -1,0 +1,16 @@
+<package name="SeedbankTree" version="1.0.0">
+	<depends on='BEAST.base' atleast='2.7.5'/>
+	
+	<service type="beast.base.core.BEASTInterface">
+        <provider classname="seedbanktree.evolution.tree.SeedbankNode"/>
+        <provider classname="seedbanktree.evolution.tree.SeedbankTree"/>
+        <provider classname="seedbanktree.evolution.tree.SeedbankTreeInitialiser"/>
+        <provider classname="seedbanktree.evolution.tree.TransitionModel"/>
+        <provider classname="seedbanktree.distributions.SeedbankTreeDensity"/>
+        <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModel"/>
+        <provider classname="seedbanktree.operators.SeedbankTreeBeer"/>
+        <provider classname="seedbanktree.operators.SeedbankTreePairBirthDeath"/>
+        <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
+    </service>
+	
+</package>
