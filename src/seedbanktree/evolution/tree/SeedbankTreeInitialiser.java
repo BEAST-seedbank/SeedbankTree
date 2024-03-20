@@ -15,7 +15,7 @@ import beast.base.util.Randomizer;
 
 public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeInitialiser {
 		
-	public Input<TransitionModel> transitionModelInput = new Input<>("transitionModel,", "transition model to use in simulator.", Validate.REQUIRED);
+	public Input<TransitionModel> transitionModelInput = new Input<>("transitionModel", "transition model to use in simulator.", Validate.REQUIRED);
 	
 	private TransitionModel transitionModel;
     
@@ -62,12 +62,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
     @Override
     public void initAndValidate() {
     	
-    	// seedbankTree inputs
-    	typeLabel = typeLabelInput.get();
-        activeTypeName = activeTypeNameInput.get();
-        dormantTypeName = dormantTypeNameInput.get();
-        
-        processTraits(m_traitList.get());
+    	super.initAndValidate();
     	
         // Obtain required parameters from inputs:
            transitionModel = transitionModelInput.get();
@@ -107,6 +102,8 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
            this.internalNodeCount = this.root.getInternalNodeCount();
            this.leafNodeCount = this.root.getLeafNodeCount();
            initArrays();
+           
+           initStateNodes();
     }
     
     /**
@@ -161,7 +158,10 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
 
         // Allocate propensity lists:
         List<Double> migrationProp = new ArrayList<>();
-        Double coalesceProp = 0.0;
+        migrationProp.add(0.0);
+        migrationProp.add(0.0);
+        List<Double> coalesceProp = new ArrayList<>();
+        coalesceProp.add(0.0);
         double t = 0.0;
 
         while (totalNodesRemaining(liveNodes)>1
@@ -203,7 +203,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
             // Step 5: Keep track of time increment.
             t = event.time;
         }
-
+        System.out.println("SEEDBANKTREEINITIALISER SIMULATED");
         // TODO: assert here that the remaining live node must be of the active type?
         // Return sole remaining live node as root:
         for (List<SeedbankNode> nodeList : liveNodes)
@@ -225,7 +225,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
      * @return Total reaction propensity.
      */
     private double updatePropensities(List<Double> migrationProp,
-            Double coalesceProp, List<List<SeedbankNode>> liveNodes) {
+            List<Double> coalesceProp, List<List<SeedbankNode>> liveNodes) {
 
         double totalProp = 0.0;
         
@@ -235,8 +235,8 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         double m_ad = transitionModel.getBackwardRate(1, 0);
         double m_da = transitionModel.getBackwardRate(0, 1);
         
-        coalesceProp = k_a * (k_a - 1) / (2.0 * N_a);
-        totalProp += coalesceProp;
+        coalesceProp.set(0, k_a * (k_a - 1) / (2.0 * N_a));
+        totalProp += coalesceProp.get(0);
         
         migrationProp.set(1, k_a * m_ad);
         migrationProp.set(0, k_d * m_da);
@@ -266,8 +266,8 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
      * @return Event object describing next event.
      */
     private SBEvent getNextEvent(List<Double> migrateProp,
-            Double coalesceProp, double totalProp, double t) {
-
+            List<Double> coalesceProp, double totalProp, double t) {
+//    	System.out.println(String.format("getting next event: migrationProp %f %f coalesceProp %f totalProp %f time %f", migrateProp.get(0), migrateProp.get(1), coalesceProp.get(0), totalProp, t));
         // Get time of next event:
         if (totalProp>0.0)
             t += Randomizer.nextExponential(totalProp);
@@ -276,11 +276,12 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
 
         // Select event type:
         double U = Randomizer.nextDouble() * totalProp;
+//        System.out.println("U: " + U);
         
-        if (U < coalesceProp) 
+        if (U < coalesceProp.get(0)) 
         	return new CoalescenceEvent(1, t);
         else
-        	U -= coalesceProp;
+        	U -= coalesceProp.get(0);
         
         if (U < migrateProp.get(0))
             return new MigrationEvent(0, 1, t);
@@ -383,6 +384,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
     
     @Override
     public void initStateNodes() {
+    	System.out.println("SEEDBANKTREEINITIALISER INITSTATENODES CALLED");
         assert(m_initial != null);
         if (!(m_initial.get() instanceof SeedbankTree)) {
         	throw new IllegalArgumentException("Attempted to use "

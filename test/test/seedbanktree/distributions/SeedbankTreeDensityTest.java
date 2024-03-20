@@ -53,7 +53,7 @@ public class SeedbankTreeDensityTest extends TestCase {
 		SeedbankTreeDensity likelihood = new SeedbankTreeDensity();
 		likelihood.initByName(
                         "transitionModel", transitionModel,
-                        "seedbankTree", sbTree,
+                        "tree", sbTree,
                         "checkValidity", true);
 
 		double expResult = -243.675; // Calculated by hand
@@ -104,7 +104,7 @@ public class SeedbankTreeDensityTest extends TestCase {
 		SeedbankTreeDensity likelihood = new SeedbankTreeDensity();
 		likelihood.initByName(
                         "transitionModel", transitionModel,
-                        "seedbankTree", sbTree,
+                        "tree", sbTree,
                         "checkValidity", true);
 
 		double expResult = -325.96; // Calculated by hand

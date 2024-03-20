@@ -179,9 +179,9 @@ public class SeedbankTree extends Tree {
      * @return numerical index representing type
      */
     public int getTypeIndex(String typeName) {
-    	if (typeName == activeTypeName) {
+    	if (typeName.equals(activeTypeName)) {
     		return 1;
-    	} else if (typeName == dormantTypeName) {
+    	} else if (typeName.equals(dormantTypeName)) {
     		return 0;
     	} else 
             throw new IllegalArgumentException("TypeSet does not contain type with name " + typeName);

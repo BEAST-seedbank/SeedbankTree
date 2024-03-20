@@ -19,9 +19,9 @@ import seedbanktree.evolution.tree.SeedbankNode;
 import seedbanktree.evolution.tree.SeedbankTree;
 import seedbanktree.evolution.tree.TransitionModel;
 
-public class SeedbankTreeDensity extends Distribution{
+public class SeedbankTreeDensity extends Distribution {
 	
-	public Input<SeedbankTree> sbTreeInput = new Input<>("seedbankTree",
+	public Input<SeedbankTree> sbTreeInput = new Input<>("tree",
 			"Seedbank tree.", Validate.REQUIRED);
 
 	public Input<TransitionModel> transitionModelInput = new Input<>(
@@ -157,7 +157,7 @@ public class SeedbankTreeDensity extends Distribution{
         		System.out.println("---");
         	}
         }
-
+        
         return logP;
     }
 

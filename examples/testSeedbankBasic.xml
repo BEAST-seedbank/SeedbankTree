@@ -1,25 +1,25 @@
 <beast version='2.0' namespace='beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution
 :seedbanktree.evolution.tree:seedbanktree.evolution.branchratemodel:seedbanktree.distributions:seedbanktree.operators'>
 	<!-- Four sequences each with 20 sites -->
-	<data id="alignment" dataType="nucleotide">
-		<sequence taxon="sample0" value="TAAGAGGGGAGAGCTCTCAC"/>
-		<sequence taxon="sample1" value="CTCGGAAGAGCGAGTCCCCC"/>
-		<sequence taxon="sample2" value="CCCCGGTAGGACGCACCCGG"/>
-		<sequence taxon="sample3" value="CCCTTATTGCCCGGGATCCA"/>
+	<data id='alignment' dataType='nucleotide'>
+		<sequence taxon='sample0' value='TAAGAGGGGAGAGCTCTCAC'/>
+		<sequence taxon='sample1' value='CTCGGAAGAGCGAGTCCCCC'/>
+		<sequence taxon='sample2' value='CCCCGGTAGGACGCACCCGG'/>
+		<sequence taxon='sample3' value='CCCTTATTGCCCGGGATCCA'/>
 	</data>
 	
 	<!-- Trait data associated with sequences -->
 	<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname="type" 
-	value="sample0=1, sample1=0, sample2=1, sample3=0">
+	value='sample0=active, sample1=dormant, sample2=active, sample3=dormant'>
 		<taxa spec='TaxonSet' alignment='@alignment'/>
 	</typeTraitSet>
 	<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname="date-backward" 
-	value="sample0=0, sample1=0, sample2=0, sample3=0">
+	value='sample0=0, sample1=0, sample2=0, sample3=0'>
 		<taxa spec='TaxonSet' alignment='@alignment'/>
 	</timeTraitSet>
 	
 	<!-- Substitution model and site model -->
-	<siteModel spec='siteModel' id='siteModel'>
+	<siteModel spec='SiteModel' id='siteModel'>
 		<substModel spec='JukesCantor'/>
 	</siteModel>
 	
@@ -40,7 +40,7 @@
 	<!-- Priors -->
 	<distribution spec='CompoundDistribution' id='prior'>
 		<distribution spec='SeedbankTreeDensity'>
-			<tree idref='sbtree'/>
+			<tree idref='sbTree'/>
 			<transitionModel idref='transitionModel'/>
 		</distribution>
 		
@@ -68,12 +68,12 @@
 	<!-- Likelihood -->
 	<distribution spec='TreeLikelihood' id='treeLikelihood'>
 		<data idref='alignment'/>
-		<tree idref='sbtree'/>
+		<tree idref='sbTree'/>
 		<siteModel idref='siteModel'/>
 		<branchRateModel idref='branchRateModel'/>
 	</distribution>
 	
-	<run spec='MCMC' id='mcmc' chainLength='1000' storeEvery='10'>
+	<run spec='MCMC' id='mcmc' chainLength='100' storeEvery='10'>
 		<init spec="SeedbankTreeInitialiser">
 			<transitionModel idref='transitionModel'/>
 			<initial idref='sbTree'/>
@@ -82,7 +82,7 @@
 		</init>
 		
 		<state>
-			<stateNode spec='SeedbankTree' id='sbTree'/>
+			<stateNode spec='SeedbankTree' id='sbTree' trait='@typeTraitSet'/>
 			<stateNode idref='transitionRate'/>
 			<stateNode idref='transitionK'/>
 			<stateNode idref='transitionActiveSize'/>
@@ -90,7 +90,7 @@
 			<stateNode idref='dormantRate'/>
 		</state>
 	
-		<distribution spec='CompoundDistrbution' id='posterior'>
+		<distribution spec='CompoundDistribution' id='posterior'>
 			<distribution idref='prior'/>
 			<distribution idref='treeLikelihood'/>
 		</distribution>
@@ -102,25 +102,25 @@
  	      parameter='@transitionK' scaleFactor='0.8' weight='1'>
      	</operator>
      	<operator spec='ScaleOperator' id='tActiveSizeScaler'
- 	      parameter='@transitionActiveSize' scaleFactor='0.8' weight='1' upper='1000'>
+ 	      parameter='@transitionActiveSize' scaleFactor='0.8' upper='1000' weight='1'>
      	</operator>
      	
      	<operator spec='SeedbankTreeBeer' id='treeBeer'
- 	      sbTree='@sbTree' transitionModel='@transitionModel'>
+ 	      sbTree='@sbTree' transitionModel='@transitionModel' weight='1'>
      	</operator>
      	<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
- 	      sbTree='@sbTree' transitionModel='@transitionModel'>
+ 	      sbTree='@sbTree' weight='1'>
      	</operator>
-     	<operator spec='SeedbankTreeScale' id='treePBD'
- 	      sbTree='@sbTree' scaleFactor='0.8'>
+     	<operator spec='SeedbankTreeScale' id='treeScale'
+ 	      sbTree='@sbTree' scaleFactor='0.8' weight='1'>
      	</operator>
 		
-		<logger id='screenlog' logEvery='10'>
+		<logger id='screenlog' logEvery='1'>
 			<log idref='posterior'/>
 			<log idref='treeLikelihood'/>
 		</logger>
 		
-		<logger fileName='testSeedbankBasic.trees' id='treelog' mode='tree'>
+		<logger fileName='examples/logs/testSeedbankBasic.trees' id='treelog' mode='tree'>
 			<log idref='sbTree'/>
 		</logger>
 	</run>

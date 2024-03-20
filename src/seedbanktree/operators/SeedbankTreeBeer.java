@@ -30,7 +30,7 @@ public class SeedbankTreeBeer extends SeedbankTreeOperator {
     @Override
     public void initAndValidate() {
         sbTree = seedbankTreeInput.get();
-//            trModel = transitionModelInput.get();
+        trModel = transitionModelInput.get();
     }
 
 	@Override
@@ -38,7 +38,7 @@ public class SeedbankTreeBeer extends SeedbankTreeOperator {
 		double logHR = 0.0;
 		
 		// Select non-root node at random
-        Node node = sbTree.getNode(Randomizer.nextInt(sbTree.getNodeCount())-1);
+        Node node = sbTree.getNode(Randomizer.nextInt(sbTree.getNodeCount()-1));
         SeedbankNode sbNode = (SeedbankNode)node;
         
         // Keep copies of node and its sister for reverse move prob calculation

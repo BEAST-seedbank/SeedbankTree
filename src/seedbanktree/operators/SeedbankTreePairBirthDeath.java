@@ -11,7 +11,7 @@ import seedbanktree.evolution.tree.SeedbankTree;
 public class SeedbankTreePairBirthDeath extends Operator {
 	
 	public Input<SeedbankTree> seedbankTreeInput = new Input<>(
-            "seedbankTree", "Seedbank tree on which to operate.",
+            "sbTree", "Seedbank tree on which to operate.",
             Validate.REQUIRED);
 	
 	protected SeedbankTree sbTree;
