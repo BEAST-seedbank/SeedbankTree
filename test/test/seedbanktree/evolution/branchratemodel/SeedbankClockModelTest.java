@@ -67,6 +67,7 @@ public class SeedbankClockModelTest {
 						"dormantRate", dormantRate,
 						"tree", sbTree);
 		
+		// Assemble substitution model, site model
 		JukesCantor substModel = new JukesCantor();
 		substModel.initAndValidate();
 	
@@ -133,6 +134,7 @@ public class SeedbankClockModelTest {
 						"dormantRate", dormantRate,
 						"tree", sbTree);
 		
+		// Assemble substitution model, site model
 		JukesCantor substModel = new JukesCantor();
 		substModel.initAndValidate();
 	
@@ -202,6 +204,7 @@ public class SeedbankClockModelTest {
 						"dormantRate", dormantRate,
 						"tree", sbTree);
 		
+		// Assemble substitution model, site model
 		JukesCantor substModel = new JukesCantor();
 		substModel.initAndValidate();
 	
@@ -268,7 +271,7 @@ public class SeedbankClockModelTest {
 						"dormantRate", dormantRate,
 						"tree", sbTree);
 		
-		// Assemble substitution model
+		// Assemble substitution model, site model
 		Frequencies frequencies = new Frequencies();
 		frequencies.initByName("frequencies", new RealParameter(new Double[]{1./2, 1./6, 1./4, 1./12}));
 		
@@ -345,7 +348,7 @@ public class SeedbankClockModelTest {
 						"dormantRate", dormantRate,
 						"tree", sbTree);
 		
-		// Assemble substitution model
+		// Assemble substitution model, site model
 		Frequencies frequencies = new Frequencies();
 		frequencies.initByName("frequencies", new RealParameter(new Double[]{1./2, 1./6, 1./4, 1./12}));
 		
@@ -425,7 +428,7 @@ public class SeedbankClockModelTest {
 						"dormantRate", dormantRate,
 						"tree", sbTree);
 		
-		// Assemble substitution model
+		// Assemble substitution model, site model
 		Frequencies frequencies = new Frequencies();
 		frequencies.initByName("frequencies", new RealParameter(new Double[]{1./2, 1./6, 1./4, 1./12}));
 		

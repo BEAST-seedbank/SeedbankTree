@@ -12,7 +12,7 @@ import seedbanktree.evolution.tree.TransitionModel;
 public class SeedbankTreeScale extends Operator{
 
     public Input<SeedbankTree> seedbankTreeInput = new Input<>(
-            "seedbankTree", "Seedbank tree on which to operate.",
+            "sbTree", "Seedbank tree on which to operate.",
             Validate.REQUIRED);
             
 //    public Input<TransitionModel> transitionModelInput = new Input<>(

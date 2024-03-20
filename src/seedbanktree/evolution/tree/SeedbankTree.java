@@ -19,7 +19,7 @@ public class SeedbankTree extends Tree {
 	// Inputs
 	public Input<String> typeLabelInput = new Input<>("typeLabel", "Label for type traits (default 'type')", "type");
 	
-    public Input<TraitSet> typeTraitInput = new Input<>("typeTrait", "Type trait set.  Used only by BEAUti.");
+//    public Input<TraitSet> typeTraitInput = new Input<>("typeTrait", "Type trait set.  Used only by BEAUti.");
     
     public Input<String> activeTypeNameInput = new Input<>(
             "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
@@ -165,25 +165,6 @@ public class SeedbankTree extends Tree {
      */
     public boolean hasTypeTrait() {
         return getTypeTrait() != null;
-    }
-    
-    /**
-     * Specifically set the type trait set for this tree. A null value simply
-     * removes the existing trait set.
-     *
-     * @param traitSet
-     */
-    public void setTypeTrait(TraitSet traitSet) {
-        if (hasTypeTrait()) {
-            m_traitList.get().remove(typeTraitSet);
-        }
-
-        if (traitSet != null) {
-            //m_traitList.setValue(traitSet, this);
-            typeTraitInput.setValue(traitSet, this);
-        }
-
-        typeTraitSet = traitSet;
     }
     
     /**
