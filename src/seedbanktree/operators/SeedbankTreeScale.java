@@ -1,36 +1,14 @@
 package seedbanktree.operators;
 
 import beast.base.core.Input;
-import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
-import beast.base.inference.Operator;
 import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
-import seedbanktree.evolution.tree.SeedbankTree;
-import seedbanktree.evolution.tree.TransitionModel;
 
-public class SeedbankTreeScale extends Operator{
+public class SeedbankTreeScale extends SeedbankTreeOperator{
 
-    public Input<SeedbankTree> seedbankTreeInput = new Input<>(
-            "sbTree", "Seedbank tree on which to operate.",
-            Validate.REQUIRED);
-            
-//    public Input<TransitionModel> transitionModelInput = new Input<>(
-//        "transitionModel",
-//        "Transition model for proposal distribution",
-//        Input.Validate.REQUIRED);
-        
     public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
     		"Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
-        
-    protected SeedbankTree sbTree;
-//    protected TransitionModel trModel;
-
-    @Override
-    public void initAndValidate() {
-    	sbTree = seedbankTreeInput.get();
-//        trModel = transitionModelInput.get();
-    }
 
 	@Override
 	public double proposal() {

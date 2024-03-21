@@ -1,26 +1,11 @@
 package seedbanktree.operators;
 
-import beast.base.core.Input;
-import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
-import beast.base.inference.Operator;
 import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
-import seedbanktree.evolution.tree.SeedbankTree;
 
-public class SeedbankTreePairBirthDeath extends Operator {
+public class SeedbankTreePairBirthDeath extends SeedbankTreeOperator {
 	
-	public Input<SeedbankTree> seedbankTreeInput = new Input<>(
-            "sbTree", "Seedbank tree on which to operate.",
-            Validate.REQUIRED);
-	
-	protected SeedbankTree sbTree;
-
-	@Override
-	public void initAndValidate() {
-		sbTree = seedbankTreeInput.get();
-	}
-
 	@Override
 	public double proposal() {
 		int n = sbTree.getLeafNodeCount();
