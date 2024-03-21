@@ -14,44 +14,46 @@ public class TransitionModel extends CalculationNode {
 	
 	// Inputs
 	// seedbank intensity / rate / c
-	public Input<Function> rateInput = new Input<> (
-			"rate", 
-			"Transition rate.", 
+	public Input<Function> transitionRateInput = new Input<> (
+			"transitionRate", 
+			"Transition rate (c).", 
 			Validate.REQUIRED); 
 
-	// relative active population size K
+	// relative seedbank population size K
 	// Active pop = K * Dormant pop
-	public Input<Function> KInput = new Input<> (
-			"K", 
-			"Ratio of active to dormant population.", 
+	public Input<Function> relativeSeedbankSizeInput = new Input<> (
+			"relativeSeedbankSize", 
+			"Relative seedbank population size, or the ratio of active to dormant population (K).", 
 			Validate.REQUIRED); 
 	
 	// Active population size
-    public Input<Function> activeSizeInput = new Input<>(
-            "activeSize",
-            "Active population size.",
+    public Input<Function> activePopSizeInput = new Input<>(
+            "activePopSize",
+            "Active population size (N).",
             Validate.REQUIRED);
 	
     //Shadow inputs
-    protected Function rate;
-    protected Function K;
-    protected Function activeSize;
+    protected Function transitionRate;
+    protected Function relativeSeedbankSize;
+    protected Function activePopSize;
 	
     @Override
     public void initAndValidate() {
     	
-    	rate = rateInput.get();
-    	K = KInput.get();
-    	activeSize = activeSizeInput.get();
+    	transitionRate = transitionRateInput.get();
+    	relativeSeedbankSize = relativeSeedbankSizeInput.get();
+    	activePopSize = activePopSizeInput.get();
 
-        if (rate instanceof RealParameter)
-            ((RealParameter)rate).setLower(Math.max(((RealParameter)rate).getLower(), 0.0));
-        
-        if (K instanceof RealParameter)
-        ((RealParameter)K).setLower(Math.max(((RealParameter)K).getLower(), 0.0));
+        if (transitionRate instanceof RealParameter) {
+        	((RealParameter)transitionRate).setLower(Math.max(((RealParameter)transitionRate).getLower(), 0.0));
+            ((RealParameter)transitionRate).setUpper(Math.min(((RealParameter)transitionRate).getUpper(), 1.0));
+        }
+            
+        if (relativeSeedbankSize instanceof RealParameter)
+        	((RealParameter)relativeSeedbankSize).setLower(Math.max(((RealParameter)relativeSeedbankSize).getLower(), 0.0));
 
-        if (activeSize instanceof RealParameter)
-            ((RealParameter)activeSize).setLower(Math.max(((RealParameter)activeSize).getLower(), 0.0));
+        if (activePopSize instanceof RealParameter)
+            ((RealParameter)activePopSize).setLower(Math.max(((RealParameter)activePopSize).getLower(), 0.0));
         
     }
     
@@ -66,9 +68,9 @@ public class TransitionModel extends CalculationNode {
         if ( i == j ) {
             return 0;
         } else if ( i == 1 && j == 0) {
-        	return rate.getArrayValue();
+        	return transitionRate.getArrayValue();
         } else { //( i == 0 && j == 1 )
-        	return rate.getArrayValue() * K.getArrayValue();
+        	return transitionRate.getArrayValue() * relativeSeedbankSize.getArrayValue();
         } 
     }
     
@@ -80,9 +82,9 @@ public class TransitionModel extends CalculationNode {
      */
     public double getPopSize(int i) {
         if (i == 1) {
-        	return activeSize.getArrayValue();
+        	return activePopSize.getArrayValue();
         } else { // i == 0
-        	return activeSize.getArrayValue() / K.getArrayValue();
+        	return activePopSize.getArrayValue() / relativeSeedbankSize.getArrayValue();
         }
     }
     
@@ -94,14 +96,14 @@ public class TransitionModel extends CalculationNode {
     	// Code referenced beast.base.evolution.tree.coalescent.ConstantPopulation
     	List<String> ids = new ArrayList<>();
     	
-    	if (rateInput.get() instanceof BEASTInterface)
-            ids.add(((BEASTInterface)rateInput.get()).getID());
+    	if (transitionRateInput.get() instanceof BEASTInterface)
+            ids.add(((BEASTInterface)transitionRateInput.get()).getID());
     	
-    	if (KInput.get() instanceof BEASTInterface)
-            ids.add(((BEASTInterface)KInput.get()).getID());
+    	if (relativeSeedbankSizeInput.get() instanceof BEASTInterface)
+            ids.add(((BEASTInterface)relativeSeedbankSizeInput.get()).getID());
     	
-    	if (activeSizeInput.get() instanceof BEASTInterface)
-            ids.add(((BEASTInterface)activeSizeInput.get()).getID());
+    	if (activePopSizeInput.get() instanceof BEASTInterface)
+            ids.add(((BEASTInterface)activePopSizeInput.get()).getID());
     	
         return ids;
     }

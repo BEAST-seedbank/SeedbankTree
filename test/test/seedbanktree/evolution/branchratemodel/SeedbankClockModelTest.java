@@ -55,16 +55,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.5", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.5");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model, site model
@@ -122,16 +118,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.5", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.5");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model, site model
@@ -192,16 +184,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.7", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.7");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model, site model
@@ -259,16 +247,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.5", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.5");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model, site model
@@ -336,16 +320,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.5", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.5");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model, site model
@@ -416,16 +396,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.7", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.7");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model, site model
@@ -527,16 +503,12 @@ public class SeedbankClockModelTest {
 		sbTreeInitializer.initStateNodes();
 		
 		// Assemble clock model
-		RealParameter activeRate = new RealParameter();
-		activeRate.initByName("value", "1.0", "estimate", false);
-		
-		RealParameter dormantRate = new RealParameter();
-		dormantRate.initByName("value", "0.09", "estimate", false);
+		RealParameter dormantScaling = new RealParameter();
+		dormantScaling.initByName("value", "0.09");
 		
 		SeedbankClockModel clockModel = new SeedbankClockModel();
 		clockModel.initByName(
-						"activeRate", activeRate,
-						"dormantRate", dormantRate,
+						"dormantScaling", dormantScaling,
 						"tree", sbTree);
 		
 		// Assemble substitution model

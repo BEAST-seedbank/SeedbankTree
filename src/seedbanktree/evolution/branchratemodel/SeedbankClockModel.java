@@ -10,18 +10,14 @@ import beast.base.inference.parameter.RealParameter;
 import seedbanktree.evolution.tree.SeedbankNode;
 
 public class SeedbankClockModel extends BranchRateModel.Base {
-	
-	final public Input<Function> activeRateInput =
-            new Input<>("activeRate", "the rate parameter associated with active branchs", Validate.REQUIRED); 
-	
-	final public Input<Function> dormantRateInput =
-            new Input<>("dormantRate", "the rate parameter associated with dormant branchs", Validate.REQUIRED); 
+
+	final public Input<Function> dormantScalingInput =
+			new Input<>("dormantScaling", "the scaling factor applied to the substitution model of dormant branches.", Validate.REQUIRED);
 	
 	final public Input<Tree> treeInput =
             new Input<>("tree", "the tree this relaxed clock is associated with.", Validate.REQUIRED);
 	
-	private Function activeRate;
-	private Function dormantRate;
+	private Function dormantScaling;
 	private Tree tree;
 	
 	private boolean recompute = true;
@@ -30,16 +26,12 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 	@Override
 	public void initAndValidate() {
 		
-		activeRate = activeRateInput.get();
-		if (activeRate instanceof RealParameter) {
-			RealParameter ar = (RealParameter) activeRate;
-			ar.setBounds(Math.max(0.0, ar.getLower()), ar.getUpper());
-		}
-		
-		dormantRate = dormantRateInput.get();
-		if (dormantRate instanceof RealParameter) {
-			RealParameter dr = (RealParameter) dormantRate;
-			dr.setBounds(Math.max(0.0, dr.getLower()), dr.getUpper());
+		dormantScaling = dormantScalingInput.get();
+		if (dormantScaling instanceof RealParameter) {
+			RealParameter dS = (RealParameter) dormantScaling;
+			
+			// scaling parameter range [0, 1]
+			dS.setBounds(Math.max(0.0, dS.getLower()), Math.min(1.0, dS.getUpper()));
 		}
 		
 		tree = treeInput.get();
@@ -89,8 +81,8 @@ public class SeedbankClockModel extends BranchRateModel.Base {
 			assert (dormantBranchLength + activeBranchLength == branchLength);
 			
 			double newRate = 0;
-			newRate += (dormantBranchLength / branchLength) * dormantRate.getArrayValue();
-			newRate += (activeBranchLength / branchLength) * activeRate.getArrayValue();
+			newRate += (dormantBranchLength / branchLength) * dormantScaling.getArrayValue();
+			newRate += (activeBranchLength / branchLength);
 			rates[nodeNumber] = newRate;
 		}
 		
@@ -108,7 +100,6 @@ public class SeedbankClockModel extends BranchRateModel.Base {
                 recompute = false;
 			}
         }
-
         return rates[node.getNr()];
 	}
 	

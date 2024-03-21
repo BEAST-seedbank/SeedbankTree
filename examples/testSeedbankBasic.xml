@@ -25,15 +25,14 @@
 	
 	<!-- Transition model -->
 	<transitionModel spec='TransitionModel' id='transitionModel'>
-		<rate spec='RealParameter' id='transitionRate' value='1.0'/>
-		<K spec='RealParameter' id='transitionK' value='1.0'/>
-		<activeSize spec='RealParameter' id='transitionActiveSize' value='100.0'/>
+		<transitionRate spec='RealParameter' id='transitionRate' value='1.0'/>
+		<relativeSeedbankSize spec='RealParameter' id='relativeSeedbankSize' value='1.0'/>
+		<activePopSize spec='RealParameter' id='activePopSize' value='5.0' estimate='false'/>
 	</transitionModel>
 	
 	<!-- Branch clock model -->
 	<branchRateModel spec='SeedbankClockModel' id='branchRateModel'>
-		<activeRate spec='RealParameter' id='activeRate' value='1.0' estimate='false'/>
-		<dormantRate spec='RealParameter' id='dormantRate' value='0.5' estimate='false'/>
+		<dormantScaling spec='RealParameter' id='dormantScaling' value='0.5'/>
 		<tree idref='sbTree'/>
 	</branchRateModel>
 	
@@ -48,19 +47,15 @@
 			<distr spec='beast.base.inference.distribution.OneOnX'/>
 		</distribution>
 		
-		<distribution spec='beast.base.inference.distribution.Prior' x='@transitionK'>
+		<distribution spec='beast.base.inference.distribution.Prior' x='@relativeSeedbankSize'>
 			<distr spec='beast.base.inference.distribution.OneOnX'/>
 		</distribution>
 		
-		<distribution spec='beast.base.inference.distribution.Prior' x='@transitionActiveSize'>
+		<distribution spec='beast.base.inference.distribution.Prior' x='@activePopSize'>
 			<distr spec='beast.base.inference.distribution.OneOnX'/>
 		</distribution>
 		
-		<distribution spec='beast.base.inference.distribution.Prior' x='@activeRate'>
-			<distr spec='beast.base.inference.distribution.OneOnX'/>
-		</distribution>
-		
-		<distribution spec='beast.base.inference.distribution.Prior' x='@dormantRate'>
+		<distribution spec='beast.base.inference.distribution.Prior' x='@dormantScaling'>
 			<distr spec='beast.base.inference.distribution.OneOnX'/>
 		</distribution>
 	</distribution>
@@ -84,10 +79,9 @@
 		<state>
 			<stateNode spec='SeedbankTree' id='sbTree' trait='@typeTraitSet'/>
 			<stateNode idref='transitionRate'/>
-			<stateNode idref='transitionK'/>
-			<stateNode idref='transitionActiveSize'/>
-			<stateNode idref='activeRate'/>
-			<stateNode idref='dormantRate'/>
+			<stateNode idref='relativeSeedbankSize'/>
+			<stateNode idref='activePopSize'/>
+			<stateNode idref='dormantScaling'/>
 		</state>
 	
 		<distribution spec='CompoundDistribution' id='posterior'>
@@ -95,24 +89,18 @@
 			<distribution idref='treeLikelihood'/>
 		</distribution>
 		
-		<operator spec='ScaleOperator' id='tRateScaler'
+		<operator spec='ScaleOperator' id='transitionRateScaler'
  	      parameter='@transitionRate' scaleFactor='0.8' weight='1'>
      	</operator>
-     	<operator spec='ScaleOperator' id='tKScaler'
- 	      parameter='@transitionK' scaleFactor='0.8' weight='1'>
-     	</operator>
-     	<operator spec='ScaleOperator' id='tActiveSizeScaler'
- 	      parameter='@transitionActiveSize' scaleFactor='0.8' upper='1000' weight='1'>
+     	<operator spec='ScaleOperator' id='relativeSeedbankSizeScaler'
+ 	      parameter='@relativeSeedbankSize' scaleFactor='0.8' weight='1'>
      	</operator>
      	
-     	<operator spec='SeedbankTreeBeer' id='treeBeer'
+     	<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
  	      sbTree='@sbTree' transitionModel='@transitionModel' weight='1'>
      	</operator>
-     	<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
- 	      sbTree='@sbTree' weight='1'>
-     	</operator>
      	<operator spec='SeedbankTreeScale' id='treeScale'
- 	      sbTree='@sbTree' scaleFactor='0.8' weight='1'>
+ 	      sbTree='@sbTree' transitionModel='@transitionModel' scaleFactor='0.8' weight='1'>
      	</operator>
 		
 		<logger id='screenlog' logEvery='1'>
@@ -124,10 +112,5 @@
 			<log idref='sbTree'/>
 		</logger>
 	</run>
-	
-	
-	
-	
-	
-	
+
 </beast>

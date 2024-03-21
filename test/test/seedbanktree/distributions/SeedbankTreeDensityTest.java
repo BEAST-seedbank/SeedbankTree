@@ -34,20 +34,20 @@ public class SeedbankTreeDensityTest extends TestCase {
 		sbTreeInitializer.initStateNodes();
 
 		// Assemble transition model:
-		RealParameter rate = new RealParameter();
-		rate.initByName("value","1.0");
-		RealParameter K = new RealParameter();
-		K.initByName("value","1.0");
-		RealParameter activeSize = new RealParameter();
-		activeSize.initByName(
+		RealParameter transitionRate = new RealParameter();
+		transitionRate.initByName("value","1.0");
+		RealParameter relativeSeedbankSize = new RealParameter();
+		relativeSeedbankSize.initByName("value","1.0");
+		RealParameter activePopSize = new RealParameter();
+		activePopSize.initByName(
 						"value", "100.0",
 						"estimate", false);
 		
 		TransitionModel transitionModel = new TransitionModel();
 		transitionModel.initByName(
-                        "rate", rate,
-                        "K", K,
-                        "activeSize", activeSize);
+                        "transitionRate", transitionRate,
+                        "relativeSeedbankSize", relativeSeedbankSize,
+                        "activePopSize", activePopSize);
 
 		// Set up likelihood instance:
 		SeedbankTreeDensity likelihood = new SeedbankTreeDensity();
@@ -85,20 +85,20 @@ public class SeedbankTreeDensityTest extends TestCase {
 		sbTreeInitializer.initStateNodes();
 
 		// Assemble transition model:
-		RealParameter rate = new RealParameter();
-		rate.initByName("value","2.0");
-		RealParameter K = new RealParameter();
-		K.initByName("value","1.25");
-		RealParameter activeSize = new RealParameter();
-		activeSize.initByName(
-						"value", "90.0",
+		RealParameter transitionRate = new RealParameter();
+		transitionRate.initByName("value","2.0");
+		RealParameter relativeSeedbankSize = new RealParameter();
+		relativeSeedbankSize.initByName("value","1.25");
+		RealParameter activePopSize = new RealParameter();
+		activePopSize.initByName(
+						"value", "90",
 						"estimate", false);
 		
 		TransitionModel transitionModel = new TransitionModel();
 		transitionModel.initByName(
-                        "rate", rate,
-                        "K", K,
-                        "activeSize", activeSize);
+                        "transitionRate", transitionRate,
+                        "relativeSeedbankSize", relativeSeedbankSize,
+                        "activePopSize", activePopSize);
 
 		// Set up likelihood instance:
 		SeedbankTreeDensity likelihood = new SeedbankTreeDensity();
