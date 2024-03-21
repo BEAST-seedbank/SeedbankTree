@@ -687,4 +687,23 @@ public class SeedbankTree extends Tree {
         
         return count;
     }
+    
+    /**
+     * Helper function for testing
+     */
+    public void describeSelf() {
+    	System.out.println("DESCRIBING SELF");
+    	System.out.println("I am tree " + this.getID());
+    	System.out.println(String.format("nodeCount %d | internalNodeCount %d | leafCount %d", nodeCount, internalNodeCount, leafNodeCount));
+    	System.out.println("Iterating through m_nodes -- length: " + m_nodes.length);
+    	for (int i=0; i<m_nodes.length; i++) {
+    		SeedbankNode n = (SeedbankNode)m_nodes[i];
+    		System.out.println("---------");
+    		System.out.println("id: " + n.getID());
+    		System.out.println("height: " + n.getHeight());
+    		System.out.println("branch length: " + n.getLength());
+    		System.out.println("num type changes: " + n.getChangeCount());
+    	}
+
+    }
 }
