@@ -1,13 +1,17 @@
 package seedbanktree.operators;
 
 import beast.base.evolution.tree.Node;
+import beast.base.inference.util.InputUtil;
 import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
+import seedbanktree.evolution.tree.SeedbankTree;
 
 public class SeedbankTreePairBirthDeath extends SeedbankTreeOperator {
 	
 	@Override
 	public double proposal() {
+		final SeedbankTree sbTree = (SeedbankTree)InputUtil.get(seedbankTreeInput, this);
+		
 		int n = sbTree.getLeafNodeCount();
         int m = sbTree.getTotalNumberOfChanges();
         
@@ -17,7 +21,7 @@ public class SeedbankTreePairBirthDeath extends SeedbankTreeOperator {
         // Find edge that sub-edge lies on:
         Node selectedNode = null;
         for (Node node : sbTree.getNodesAsArray()) {
-            if (node.isRoot()) //is this possible?
+            if (node.isRoot())
                 continue;
 
             if (edgeNum<((SeedbankNode)node).getChangeCount()+1) {

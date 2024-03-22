@@ -2,16 +2,20 @@ package seedbanktree.operators;
 
 import beast.base.core.Input;
 import beast.base.evolution.tree.Node;
+import beast.base.inference.util.InputUtil;
 import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
+import seedbanktree.evolution.tree.SeedbankTree;
 
 public class SeedbankTreeScale extends SeedbankTreeOperator{
 
-    public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
+    final public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
     		"Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
 
 	@Override
 	public double proposal() {
+		final SeedbankTree sbTree = (SeedbankTree)InputUtil.get(seedbankTreeInput, this);
+		
 		// Choose scale factor:
         double u = Randomizer.nextDouble();
         double f = u*scaleFactorInput.get()+(1.0-u)/scaleFactorInput.get();

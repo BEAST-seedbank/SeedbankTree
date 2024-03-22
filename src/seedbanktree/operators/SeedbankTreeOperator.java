@@ -11,23 +11,17 @@ import seedbanktree.evolution.tree.SeedbankNode;
 
 public abstract class SeedbankTreeOperator extends Operator{
 	
-	    public Input<SeedbankTree> seedbankTreeInput = new Input<>(
+	    final public Input<SeedbankTree> seedbankTreeInput = new Input<>(
             "sbTree", "Seedbank tree on which to operate.",
             Validate.REQUIRED);
             
-        public Input<TransitionModel> transitionModelInput = new Input<>(
+        final public Input<TransitionModel> transitionModelInput = new Input<>(
             "transitionModel",
             "Transition model for proposal distribution",
             Input.Validate.REQUIRED);
         
-        protected SeedbankTree sbTree;
-        protected TransitionModel trModel;
-
         @Override
-        public void initAndValidate() {
-            sbTree = seedbankTreeInput.get();
-            trModel = transitionModelInput.get();
-        }
+        public void initAndValidate() {}
 
         /* ***********************************************************************
          * The following two methods are copied verbatim from TreeOperator.
