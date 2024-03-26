@@ -1,2 +1,4 @@
 /bin
 test/test/seedbanktree/distributions/__pycache__/
+*.trees
+*.state
