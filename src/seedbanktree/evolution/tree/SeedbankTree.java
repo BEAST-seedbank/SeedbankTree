@@ -677,16 +677,80 @@ public class SeedbankTree extends Tree {
      */
     public int getTotalNumberOfChanges() {
         int count = 0;        
-
         for (Node node : m_nodes) {
             if (node.isRoot())
-                continue;
-            
+                continue;   
             count += ((SeedbankNode)node).getChangeCount();
         }
-        
         return count;
     }
+    
+
+    /**
+     * Stores all data and node data associated with this tree
+     */
+    @Override
+    protected void store() {
+        storedRoot = m_storedNodes[root.getNr()];
+        int iRoot = root.getNr();
+
+        storeNodes(0, iRoot);
+        
+        storedRoot.setHeight( m_nodes[iRoot].getHeight());
+        storedRoot.setParent(null);
+
+        if (root.getLeft()!=null)
+            storedRoot.setLeft(m_storedNodes[root.getLeft().getNr()]);
+        else
+            storedRoot.setLeft(null);
+        if (root.getRight()!=null)
+            storedRoot.setRight(m_storedNodes[root.getRight().getNr()]);
+        else
+            storedRoot.setRight(null);
+        
+        SeedbankNode sbStoredRoot = (SeedbankNode)storedRoot;
+        sbStoredRoot.changeTimes.clear();
+        sbStoredRoot.changeTimes.addAll(((SeedbankNode)m_nodes[iRoot]).changeTimes);
+
+        sbStoredRoot.changeTypes.clear();
+        sbStoredRoot.changeTypes.addAll(((SeedbankNode)m_nodes[iRoot]).changeTypes);
+        
+        sbStoredRoot.nTypeChanges = ((SeedbankNode)m_nodes[iRoot]).nTypeChanges;
+        sbStoredRoot.nodeType = ((SeedbankNode)m_nodes[iRoot]).nodeType;
+        
+        storeNodes(iRoot+1, nodeCount);
+    }
+
+    /**
+     * helper to store *
+     */
+    private void storeNodes(int iStart, int iEnd) {
+        for (int i = iStart; i<iEnd; i++) {
+            SeedbankNode sink = (SeedbankNode)m_storedNodes[i];
+            SeedbankNode src = (SeedbankNode)m_nodes[i];
+            
+            sink.setHeight( src.getHeight());
+            sink.setParent(m_storedNodes[src.getParent().getNr()]);
+            
+            if (src.getLeft()!=null) {
+                sink.setLeft(m_storedNodes[src.getLeft().getNr()]);
+                if (src.getRight()!=null)
+                    sink.setRight(m_storedNodes[src.getRight().getNr()]);
+                else
+                    sink.setRight(null);
+            }
+            
+            sink.changeTimes.clear();
+            sink.changeTimes.addAll(src.changeTimes);
+            
+            sink.changeTypes.clear();
+            sink.changeTypes.addAll(src.changeTypes);
+            
+            sink.nTypeChanges = src.nTypeChanges;
+            sink.nodeType = src.nodeType;
+        }
+    }
+    
     
     /**
      * Helper function for testing
