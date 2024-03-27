@@ -8,7 +8,7 @@
         <provider classname="seedbanktree.evolution.tree.TransitionModel"/>
         <provider classname="seedbanktree.distributions.SeedbankTreeDensity"/>
         <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModel"/>
-        <provider classname="seedbanktree.operators.SeedbankTreeBeer"/>
+        <provider classname="seedbanktree.operators.SeedbankTreeDormantScale"/>
         <provider classname="seedbanktree.operators.SeedbankTreePairBirthDeath"/>
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
     </service>

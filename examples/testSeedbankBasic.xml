@@ -37,11 +37,13 @@
 	</branchRateModel>
 	
 	<!-- Priors -->
+	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity'>
+		<tree idref='sbTree'/>
+		<transitionModel idref='transitionModel'/>
+	</distribution>
+		
 	<distribution spec='CompoundDistribution' id='prior'>
-		<distribution spec='SeedbankTreeDensity'>
-			<tree idref='sbTree'/>
-			<transitionModel idref='transitionModel'/>
-		</distribution>
+		
 		
 		<distribution spec='beast.base.inference.distribution.Prior' x='@transitionRate'>
 			<distr spec='beast.base.inference.distribution.OneOnX'/>
@@ -68,7 +70,7 @@
 		<branchRateModel idref='branchRateModel'/>
 	</distribution>
 	
-	<run spec='MCMC' id='mcmc' chainLength='100' storeEvery='10'>
+	<run spec='MCMC' id='mcmc' chainLength='10000' storeEvery='10'>
 		<init spec="SeedbankTreeInitialiser">
 			<transitionModel idref='transitionModel'/>
 			<initial idref='sbTree'/>
@@ -87,28 +89,38 @@
 		<distribution spec='CompoundDistribution' id='posterior'>
 			<distribution idref='prior'/>
 			<distribution idref='treeLikelihood'/>
+			<distribution idref='seedbankTreeDensity'/>
 		</distribution>
 		
-		<operator spec='ScaleOperator' id='transitionRateScaler'
+<!-- 		<operator spec='ScaleOperator' id='transitionRateScaler'
  	      parameter='@transitionRate' scaleFactor='0.8' weight='1'>
      	</operator>
      	<operator spec='ScaleOperator' id='relativeSeedbankSizeScaler'
  	      parameter='@relativeSeedbankSize' scaleFactor='0.8' weight='1'>
      	</operator>
+     	<operator spec='ScaleOperator' id='dormantScalingScaler'
+ 	      parameter='@dormantScaling' scaleFactor='0.8' weight='1'>
+     	</operator> -->
      	
-     	<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
- 	      sbTree='@sbTree' transitionModel='@transitionModel' weight='1'>
+		
+<!-- 		<operator spec='SeedbankTreeScale' id='treeScale'
+ 	      sbTree='@sbTree' scaleFactor='0.8' weight='1'>
+     	</operator> -->
+     	<operator spec='SeedbankTreeDormantScale' id='treePBD'
+ 	      sbTree='@sbTree' weight='1'>
      	</operator>
-     	<operator spec='SeedbankTreeScale' id='treeScale'
+     	<!--      	<operator spec='SeedbankTreeScale' id='treeScale'
  	      sbTree='@sbTree' transitionModel='@transitionModel' scaleFactor='0.8' weight='1'>
-     	</operator>
+     	</operator> -->
 		
 		<logger id='screenlog' logEvery='1'>
 			<log idref='posterior'/>
+			<log idref='prior'/>
+			<log idref='seedbankTreeDensity'/>
 			<log idref='treeLikelihood'/>
 		</logger>
 		
-		<logger fileName='examples/logs/testSeedbankBasic.trees' id='treelog' mode='tree'>
+		<logger fileName='testSeedbankBasic.trees' id='treelog' mode='tree'>
 			<log idref='sbTree'/>
 		</logger>
 	</run>
