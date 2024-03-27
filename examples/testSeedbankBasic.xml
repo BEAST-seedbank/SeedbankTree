@@ -70,7 +70,7 @@
 		<branchRateModel idref='branchRateModel'/>
 	</distribution>
 	
-	<run spec='MCMC' id='mcmc' chainLength='10000' storeEvery='10'>
+	<run spec='MCMC' id='mcmc' chainLength='100' storeEvery='10'>
 		<init spec="SeedbankTreeInitialiser">
 			<transitionModel idref='transitionModel'/>
 			<initial idref='sbTree'/>

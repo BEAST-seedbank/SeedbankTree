@@ -1,5 +1,6 @@
 package seedbanktree.evolution.tree;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -751,6 +752,62 @@ public class SeedbankTree extends Tree {
         }
     }
     
+    /**
+     * Return string representation of seedbank tree.
+     * 
+     * @return Seedbank tree string in Newick format.
+     */
+    @Override
+    public String toString() {
+
+        // Behaves differently if writing a state file
+        StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+        if (ste[2].getMethodName().equals("toXML")) {            
+            // Use toShortNewick to generate Newick string without taxon labels
+            return getFlattenedTree(false).getRoot().toShortNewick(true);
+        } else{
+            return getFlattenedTree(true).getRoot().toSortedNewick(new int[1], true);
+        }
+    }
+    
+    /////////////////////////////////////////////////
+    // Methods implementing the Loggable interface //
+    /////////////////////////////////////////////////
+    @Override
+    public void init(PrintStream printStream) {
+
+        printStream.println("#NEXUS\n");
+        printStream.println("Begin taxa;");
+        printStream.println("\tDimensions ntax="+getLeafNodeCount()+";");
+        printStream.println("\t\tTaxlabels");
+        for (int i = 0; i<getLeafNodeCount(); i++)
+            printStream.println("\t\t\t"+getNodesAsArray()[i].getID());
+        printStream.println("\t\t\t;");
+        printStream.println("End;");
+
+        printStream.println("Begin trees;");
+        printStream.println("\tTranslate");
+        for (int i = 0; i<getLeafNodeCount(); i++) {
+            printStream.print("\t\t\t"+(getNodesAsArray()[i].getNr()+1)
+                    +" "+getNodesAsArray()[i].getID());
+            if (i<getLeafNodeCount()-1)
+                printStream.print(",");
+            printStream.print("\n");
+        }
+        printStream.print(";");
+    }
+
+    @Override
+    public void log(long i, PrintStream printStream) {
+        printStream.print("tree STATE_"+i+" = ");
+        printStream.print(toString());
+        printStream.print(";");
+    }
+
+    @Override
+    public void close(PrintStream printStream) {
+        printStream.println("End;");
+    }
     
     /**
      * Helper function for testing
