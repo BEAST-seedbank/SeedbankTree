@@ -18,7 +18,7 @@ public abstract class SeedbankTreeOperator extends Operator{
         final public Input<TransitionModel> transitionModelInput = new Input<>(
             "transitionModel",
             "Transition model for proposal distribution",
-            Input.Validate.REQUIRED);
+            Validate.OPTIONAL);
         
         @Override
         public void initAndValidate() {}
