@@ -34,12 +34,12 @@ public class SeedbankTreeDensity extends Distribution {
             +"Useful if operators are in danger of proposing invalid trees.",
             false);
     
-    public Input<Boolean> testLoggingInput = new Input<> (
-    		"testLogging", "Print logging statements for testing. (Default false.)", false);
+    public Input<Boolean> debugLoggingInput = new Input<> (
+    		"debugLogging", "Print logging statements for testing. (Default false.)", false);
     
     private SeedbankTree sbTree;
     private TransitionModel transitionModel;
-    private boolean checkValidity, testLogging;
+    private boolean checkValidity, debugLogging;
     
     private enum SBEventKind {
         COALESCE, MIGRATE, SAMPLE
@@ -60,7 +60,7 @@ public class SeedbankTreeDensity extends Distribution {
         sbTree = sbTreeInput.get();
         transitionModel = transitionModelInput.get();
         checkValidity = checkValidityInput.get();
-        testLogging = testLoggingInput.get();
+        debugLogging = debugLoggingInput.get();
         
         eventList = new ArrayList<>();
         lineageCountList = new ArrayList<>();
@@ -74,7 +74,7 @@ public class SeedbankTreeDensity extends Distribution {
     public double calculateLogP() {
         
         // Check validity of tree if required:
-        if (checkValidity && !sbTree.isValid())
+        if (checkValidity && sbTree.isDirtyCalculation() && !sbTree.isValid())
             return Double.NEGATIVE_INFINITY;
 
         // Ensure sequence of events is up-to-date:
@@ -108,7 +108,7 @@ public class SeedbankTreeDensity extends Distribution {
                 		
                 logP += -delta_t*lambda;
                 
-                if (testLogging) {
+                if (debugLogging) {
                 	System.out.println("TIME CONTRIBUTION");
                 	System.out.println(String.format("Interval: %f\nlogP: %f\n", delta_t, -delta_t*lambda));
                 }
@@ -121,7 +121,7 @@ public class SeedbankTreeDensity extends Distribution {
                     double theta = N * 2 * (1);
                     logP += Math.log(1.0/theta);
                     
-                    if (testLogging) {
+                    if (debugLogging) {
                     	System.out.print("COALESCE EVENT: ");
                         System.out.println(String.format("logP: %f", Math.log(1.0/theta)));
                     }
@@ -133,7 +133,7 @@ public class SeedbankTreeDensity extends Distribution {
                             .getBackwardRate(event.type, event.destType);
                     logP += Math.log(m);
                     
-                    if (testLogging) {
+                    if (debugLogging) {
                     	System.out.print(String.format("MIGRATE EVENT: %d to %d", event.type, event.destType));
                         System.out.println(String.format("logP: %f", Math.log(m)));
                     }
@@ -144,7 +144,7 @@ public class SeedbankTreeDensity extends Distribution {
                     // Do nothing here: only effect of sampling event is
                     // to change the lineage counts in subsequent intervals.
                 	
-                	if (testLogging) {
+                	if (debugLogging) {
                 		System.out.print("SAMPLE: ");
                         System.out.println("logP: 0");
                 	}
@@ -152,7 +152,7 @@ public class SeedbankTreeDensity extends Distribution {
                     break;
             }
             
-            if (testLogging) {
+            if (debugLogging) {
         		System.out.println("\nTotal logP: " + logP);
         		System.out.println("---");
         	}
