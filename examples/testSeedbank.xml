@@ -1,0 +1,167 @@
+<beast version='2.0' namespace='beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution
+:seedbanktree.evolution.tree:seedbanktree.evolution.branchratemodel:seedbanktree.distributions:seedbanktree.operators'>
+	<!-- Four sequences each with 20 sites -->
+	<data id='alignment' dataType='nucleotide'>
+		<sequence taxon='sample0' value='CTTACAAAACCGCCCGATAGCCGAATTCTTTTAAACCACATATCCTAGTCGGTATTTACTTCACTAACCACGCCTAGACCGAAGCAGTACTCACGGGGTC'/>
+		<sequence taxon='sample1' value='CTTACAAAACCGCTAGATAGTCGAATTCTCTTAAATCACATATCCTAGTCGGTATTTACTTCACTATCCACACCTAGACCGAAGCAGTACTCAGGGGGTC'/>
+		<sequence taxon='sample2' value='CGTACAATACCGCAGGATAGCCGAATTCTTTTTATTCAGATACCCTAGTCGGTATTTGCTTCACTCTCCAGACTCAGACCGAAGAAGTACTCACGGGGTG'/>
+		<sequence taxon='sample3' value='CTTACAAAACCGCTAGATAGCCGAATTCTCTTAAATCACATATCCTAGTCGGTATTTACTTCACTATCCACACCTAGACCGAAGCAGTACTCACGGGGTC'/>
+		<sequence taxon='sample4' value='CTTACAAAACCGCCCGATAGCCGAATTCTTTTAAATAACATATCATAGTCTGTATTTACTTCACTATCCACTCCTAGACCGAAGCAGTACTCACGGGGTC'/>
+		<sequence taxon='sample5' value='CTTACAAAACCGCTAGATAGCCGAATTCTCTTAAATCACATATCCTAGTCGGTATTTACTTCACTATCCACACCTAGACCGAAGTAGTACTCACGGGATC'/>
+		<sequence taxon='sample6' value='CGTACAATACCGCAGGATAGCCGAATTCTTTTTATTCAGATATCCTTGTCGGTATTTACTTCACTATCCAGAACCAGACCGCAGAAGTACTCACGGGGTG'/>
+		<sequence taxon='sample7' value='CTTACAAAACCGCCCGATAGCCGAATTCTTTTAAACCACATATCCTAGTCCGTATTTACTGCACTAACCACGCCTAGACCGAAGCAGTACTCACGGGGTC'/>
+		<sequence taxon='sample8' value='CTTACAAAACCGCTAGATAGCCGAATTCTCTTAAATCACATATCCTAGTCGGTATTTACTTCACTATCCACACCTAGACCGAAGCAGTACTCACGGGGTC'/>
+		<sequence taxon='sample9' value='CGTACAATACCGCAGGATAGCCGAATTCTTTTTATTCAGATACCCTAGTCGGTATTTACTTCACTCTCCAGACTCAGACCGAAGAAGTACTCACGGGGTG'/>
+	</data>
+	
+	<!-- Trait data associated with sequences -->
+	<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname="type" 
+		value='sample0=active, 
+			sample1=dormant, 
+			sample2=active, 
+			sample3=active,
+			sample4=active, 
+			sample5=dormant, 
+			sample6=active,
+			sample7=active, 
+			sample8=active, 
+			sample9=active'>
+		<taxa spec='TaxonSet' alignment='@alignment'/>
+	</typeTraitSet>
+	
+	<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname="date-backward" 
+		value='sample0=0, 
+			sample1=0, 
+			sample2=0, 
+			sample3=0,
+			sample4=0, 
+			sample5=0, 
+			sample6=0,
+			sample7=0, 
+			sample8=0, 
+			sample9=0'>
+		<taxa spec='TaxonSet' alignment='@alignment'/>
+	</timeTraitSet>
+	
+	<!-- Substitution model and site model -->
+	<siteModel spec='SiteModel' id='siteModel'>
+		<substModel spec='HKY'>
+			<kappa spec='RealParameter' id='kappa' value='1.0' lower='0.0'/>
+			<frequencies spec='Frequencies'>
+				<frequencies spec='RealParameter' id='freqs' lower='0.0' upper='1.0'
+					value='0.25 0.25 0.25 0.25' dimension='4'/>
+			</frequencies>
+		</substModel>
+	</siteModel>
+	
+	<!-- Transition model -->
+	<transitionModel spec='TransitionModel' id='transitionModel'>
+		<transitionRate spec='RealParameter' id='transitionRate' value='1.0'/>
+		<relativeSeedbankSize spec='RealParameter' id='relativeSeedbankSize' value='1.0'/>
+		<activePopSize spec='RealParameter' id='activePopSize' value='20.0' estimate='false'/>
+	</transitionModel>
+	
+	<!-- Branch clock model -->
+	<branchRateModel spec='SeedbankClockModel' id='branchRateModel'>
+		<dormantScaling spec='RealParameter' id='dormantScaling' value='0.5'/>
+		<tree idref='sbTree'/>
+	</branchRateModel>
+	
+	<!-- Priors -->
+	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity'>
+		<tree idref='sbTree'/>
+		<transitionModel idref='transitionModel'/>
+	</distribution>
+		
+	<distribution spec='CompoundDistribution' id='prior'>
+		
+		
+		<distribution spec='beast.base.inference.distribution.Prior' x='@transitionRate'>
+			<distr spec='beast.base.inference.distribution.OneOnX'/>
+		</distribution>
+		
+		<distribution spec='beast.base.inference.distribution.Prior' x='@relativeSeedbankSize'>
+			<distr spec='beast.base.inference.distribution.OneOnX'/>
+		</distribution>
+		
+		<distribution spec='beast.base.inference.distribution.Prior' x='@activePopSize'>
+			<distr spec='beast.base.inference.distribution.OneOnX'/>
+		</distribution>
+		
+		<distribution spec='beast.base.inference.distribution.Prior' x='@dormantScaling'>
+			<distr spec='beast.base.inference.distribution.OneOnX'/>
+		</distribution>
+	</distribution>
+	
+	<!-- Likelihood -->
+	<distribution spec='TreeLikelihood' id='treeLikelihood'>
+		<data idref='alignment'/>
+		<tree idref='sbTree'/>
+		<siteModel idref='siteModel'/>
+		<branchRateModel idref='branchRateModel'/>
+	</distribution>
+	
+	<run spec='MCMC' id='mcmc' chainLength='100000' storeEvery='10000'>
+		<init spec="SeedbankTreeInitialiser">
+			<transitionModel idref='transitionModel'/>
+			<initial idref='sbTree'/>
+			<trait idref='typeTraitSet'/>
+			<trait idref='timeTraitSet'/>
+		</init>
+		
+		<state>
+			<stateNode spec='SeedbankTree' id='sbTree' trait='@typeTraitSet'/>
+			<stateNode idref='transitionRate'/>
+			<stateNode idref='relativeSeedbankSize'/>
+			<stateNode idref='activePopSize'/>
+			<stateNode idref='dormantScaling'/>
+			<stateNode idref='kappa'/>
+			<stateNode idref='freqs'/>
+		</state>
+	
+		<distribution spec='CompoundDistribution' id='posterior'>
+			<distribution idref='prior'/>
+			<distribution idref='treeLikelihood'/>
+			<distribution idref='seedbankTreeDensity'/>
+		</distribution>
+		
+		<operator spec='ScaleOperator' id='transitionRateScaler'
+ 	      parameter='@transitionRate' scaleFactor='0.8' weight='1'>
+     	</operator>
+     	<operator spec='ScaleOperator' id='relativeSeedbankSizeScaler'
+ 	      parameter='@relativeSeedbankSize' scaleFactor='0.8' weight='1'>
+     	</operator>
+     	<operator spec='ScaleOperator' id='dormantScalingScaler'
+ 	      parameter='@dormantScaling' scaleFactor='0.8' weight='1'>
+     	</operator>
+     	<operator spec='ScaleOperator' id='kappaScaler'
+ 	      parameter='@kappa' scaleFactor='0.8' weight='1'>
+     	</operator>
+     	<operator spec='DeltaExchangeOperator' id='freqsDeltaExchanger'
+ 	      parameter='@freqs' delta='0.05' weight='1'>
+     	</operator>
+     	
+		
+		<operator spec='SeedbankTreeScale' id='treeScale'
+ 	      sbTree='@sbTree' scaleFactor='0.8' weight='1'>
+     	</operator>
+		<operator spec='SeedbankTreeDormantScale' id='treeDormantScale'
+ 	      sbTree='@sbTree' weight='1'>
+     	</operator>
+		<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
+ 	      sbTree='@sbTree' weight='1'>
+     	</operator>
+		
+		<logger id='screenlog' logEvery='1000'>
+			<log idref='posterior'/>
+			<log idref='prior'/>
+			<log idref='seedbankTreeDensity'/>
+			<log idref='treeLikelihood'/>
+		</logger>
+		
+		<logger fileName='testSeedbankBasic.trees' id='treelog' mode='tree'>
+			<log idref='sbTree'/>
+		</logger>
+	</run>
+
+</beast>
