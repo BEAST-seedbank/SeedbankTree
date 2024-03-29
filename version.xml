@@ -11,6 +11,7 @@
         <provider classname="seedbanktree.operators.SeedbankTreeDormantScale"/>
         <provider classname="seedbanktree.operators.SeedbankTreePairBirthDeath"/>
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
+        <provider classname="seedbanktree.util.MAPTreeLogger"/>
     </service>
 	
 </package>

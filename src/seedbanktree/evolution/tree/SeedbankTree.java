@@ -155,8 +155,11 @@ public class SeedbankTree extends Tree {
      * @return TraitSet with same name as typeLabel.
      */
     public TraitSet getTypeTrait() {
-        if (!traitsProcessed)
-            processTraits(m_traitList.get());
+        if (!traitsProcessed) {
+        	try {
+        		processTraits(m_traitList.get());
+        	} catch (IllegalArgumentException e) {}
+        }   
         
         return typeTraitSet;
     }
@@ -166,6 +169,21 @@ public class SeedbankTree extends Tree {
      */
     public boolean hasTypeTrait() {
         return getTypeTrait() != null;
+    }
+    
+    /**
+     * Specifically set the type trait set for this tree. A null value simply
+     * removes the existing trait set.
+     *
+     * @param traitSet
+     */
+    public void setTypeTrait(TraitSet traitSet) {
+        if (hasTypeTrait()) {
+            m_traitList.get().remove(typeTraitSet);
+        }
+
+        m_traitList.get().add(traitSet);
+        typeTraitSet = traitSet;
     }
     
     /**
@@ -815,6 +833,9 @@ public class SeedbankTree extends Tree {
     public void describeSelf() {
     	System.out.println("DESCRIBING SELF");
     	System.out.println("I am tree " + this.getID());
+    	System.out.println(String.format("TypeLabel %s activeTN %s dormantTN %s", typeLabel, activeTypeName, dormantTypeName));
+    	System.out.println("traitsProcessed: " + traitsProcessed + " hasTypeTrait(): " + hasTypeTrait());
+    	System.out.println(getTypeTrait().traitsInput.get());
     	System.out.println(String.format("nodeCount %d | internalNodeCount %d | leafCount %d", nodeCount, internalNodeCount, leafNodeCount));
     	System.out.println("Iterating through m_nodes -- length: " + m_nodes.length);
     	for (int i=0; i<m_nodes.length; i++) {

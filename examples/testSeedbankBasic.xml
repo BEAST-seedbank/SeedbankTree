@@ -18,11 +18,6 @@
 		<taxa spec='TaxonSet' alignment='@alignment'/>
 	</timeTraitSet>
 	
-	<!-- Substitution model and site model -->
-	<siteModel spec='SiteModel' id='siteModel'>
-		<substModel spec='JukesCantor'/>
-	</siteModel>
-	
 	<!-- Transition model -->
 	<transitionModel spec='TransitionModel' id='transitionModel'>
 		<transitionRate spec='RealParameter' id='transitionRate' value='1.0'/>
@@ -35,6 +30,11 @@
 		<dormantScaling spec='RealParameter' id='dormantScaling' value='0.5'/>
 		<tree idref='sbTree'/>
 	</branchRateModel>
+	
+	<!-- Substitution model and site model -->
+	<siteModel spec='SiteModel' id='siteModel'>
+		<substModel spec='JukesCantor'/>
+	</siteModel>
 	
 	<!-- Priors -->
 	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity'>
@@ -70,7 +70,7 @@
 		<branchRateModel idref='branchRateModel'/>
 	</distribution>
 	
-	<run spec='MCMC' id='mcmc' chainLength='100' storeEvery='10'>
+	<run spec='MCMC' id='mcmc' chainLength='100000' storeEvery='10000'>
 		<init spec="SeedbankTreeInitialiser">
 			<transitionModel idref='transitionModel'/>
 			<initial idref='sbTree'/>
@@ -103,26 +103,30 @@
      	</operator> -->
      	
 		
-<!-- 		<operator spec='SeedbankTreeScale' id='treeScale'
+		<operator spec='SeedbankTreeScale' id='treeScale'
  	      sbTree='@sbTree' scaleFactor='0.8' weight='1'>
+     	</operator>
+<!--      	<operator spec='SeedbankTreeDormantScale' id='treeDormantScale'
+ 	      sbTree='@sbTree' weight='1'>
      	</operator> -->
-     	<operator spec='SeedbankTreeDormantScale' id='treePBD'
+		<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
  	      sbTree='@sbTree' weight='1'>
      	</operator>
-     	<!--      	<operator spec='SeedbankTreeScale' id='treeScale'
- 	      sbTree='@sbTree' transitionModel='@transitionModel' scaleFactor='0.8' weight='1'>
-     	</operator> -->
 		
-		<logger id='screenlog' logEvery='1'>
+		<logger id='screenlog' logEvery='1000'>
 			<log idref='posterior'/>
 			<log idref='prior'/>
 			<log idref='seedbankTreeDensity'/>
 			<log idref='treeLikelihood'/>
 		</logger>
 		
-		<logger fileName='testSeedbankBasic.trees' id='treelog' mode='tree'>
+		<logger fileName='testSeedbankBasic.trees' logEvery='1000' id='treelog' mode='tree'>
 			<log idref='sbTree'/>
 		</logger>
+		
+		<logger fileName="testSeedbankBasic.map.trees" logEvery='1000' id='maptreelog' mode="tree">
+            <log id='maplogger' spec='MAPTreeLogger' sbTree='@sbTree' posterior="@posterior"/>
+        </logger>
 	</run>
 
 </beast>
