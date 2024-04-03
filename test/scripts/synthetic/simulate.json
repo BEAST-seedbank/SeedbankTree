@@ -1,0 +1,10 @@
+{
+    "sample_size_1": 2,
+    "sample_size_2": 1,
+    "island_2_relative_size": 1.0,
+    "migration_rate": 1.0,
+    "mutation_rate_1": 10.0,
+    "mutation_rate_2": 10.0,
+    "weak_seed_bank_mean_delay": 1.0,
+    "model" :2
+}
