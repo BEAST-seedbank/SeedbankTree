@@ -1,11 +1,14 @@
 import sys, time, os, json
 import numpy as np
 
-from Bio import Phylo
-from io import StringIO
-import numpy as np
-from treetime.seqgen import SeqGen
-from treetime import GTR
+##########################################################################
+# To run this file:
+# python3 simulate_mutation.py <config.json>
+# python3 simulate_tree.py simulate_tree.json
+#
+# Creates output file:
+# simulate_tree_output.txt
+#
 
 def newick(id, island, time_vector, anc, dec_1, dec_2):
     type = "active" if island[id] == 0 else "dormant"
@@ -30,14 +33,11 @@ def main():
     with open(sys.argv[1]) as f:
         config_data = json.load(f)
 
-    weak_seed_bank_mean_delay = config_data["weak_seed_bank_mean_delay"]
     sample_size_1 = config_data["sample_size_1"]
     sample_size_2 = config_data["sample_size_2"]
-    model = config_data["model"]
     island_2_relative_size = config_data["island_2_relative_size"]
     migration_rate = config_data["migration_rate"]
 
-    beta = 1.0 / weak_seed_bank_mean_delay
     np.random.seed(int(time.time() * os.getpid()) % (2 ** 32 - 1))
     next_parent = sample_size_1 + sample_size_2
     anc = [-1] * next_parent
@@ -53,25 +53,11 @@ def main():
         island[i] = 1
 
     while len(active_1) + len(active_2) > 1:
-        if model == 0:
-            c_rate_1 = len(active_1) * (len(active_1) - 1) * beta * beta
-            c_rate_2 = 0.0
-            m_rate_1 = 0.0
-            m_rate_2 = 0.0
-        elif model == 1:
-            c_rate_1 = len(active_1) * (len(active_1) - 1)
-            c_rate_2 = len(active_2) * (len(active_2) - 1) * island_2_relative_size
-            m_rate_1 = len(active_1) * migration_rate
-            m_rate_2 = len(active_2) * migration_rate * island_2_relative_size
-        elif model == 2:
-            c_rate_1 = len(active_1) * (len(active_1) - 1) / 2
-            c_rate_2 = 0.0
-            m_rate_1 = len(active_1) * migration_rate
-            m_rate_2 = len(active_2) * migration_rate * island_2_relative_size
-        else:
-            print("Unrecognized model specification.")
-            print("See dev.cfg for implemented models.")
-            sys.exit(1)
+        # elif model == 2:
+        c_rate_1 = len(active_1) * (len(active_1) - 1) / 2
+        c_rate_2 = 0.0
+        m_rate_1 = len(active_1) * migration_rate
+        m_rate_2 = len(active_2) * migration_rate * island_2_relative_size
 
         total_rate = c_rate_1 + c_rate_2 + m_rate_1 + m_rate_2
         sim_time += np.random.exponential(1.0 / total_rate)
@@ -94,19 +80,6 @@ def main():
             active_1[min(child_1, child_2)] = next_parent
             next_parent += 1
             active_1.pop(max(child_1, child_2))
-        elif coin < (c_rate_1 + c_rate_2) / total_rate:
-            child_1 = np.random.randint(len(active_2))
-            child_2 = np.random.randint(len(active_2))
-            while child_2 == child_1:
-                child_2 = np.random.randint(len(active_2))
-            time_vector.append(sim_time)
-            anc.append(-1)
-            island.append(1)
-            anc[active_2[child_1]] = next_parent
-            anc[active_2[child_2]] = next_parent
-            active_2[min(child_1, child_2)] = next_parent
-            next_parent += 1
-            active_2.pop(max(child_1, child_2))
         elif coin < (total_rate - m_rate_2) / total_rate:
             child_1 = np.random.randint(len(active_1))
             anc.append(-1)
@@ -132,42 +105,12 @@ def main():
             active_2.pop(child_1)
             next_parent += 1
 
-    for i in range(next_parent):
-        print(i, "|", dec_1[i], "|", dec_2[i])
+    with open("simulate_tree_output.txt", "w") as file:
+        # for i in range(next_parent):
+        #     file.write(f"{i}|{dec_1[i]}|{dec_2[i]}\n")
 
-    print()
-    newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
-    print(newick_str)
-
-    handle = StringIO(newick_str)
-    tree = Phylo.read(handle, 'newick', rooted=True)
-    conf_to_names(tree)
-
-    pi = np.array([0.25, 0.25, 0.25, 0.25])
-    gtr = GTR.standard(model='hky', mu=1.0, pi=pi, kappa=0.1)
-    gtr_d = GTR.standard(model='hky', mu=0.1, pi=pi, kappa=0.1)
-
-    sq = SeqGen(10, tree=tree, gtr=gtr, gtr_d = gtr_d)
-    sq.evolve_sb()
-
-    aln = sq.get_aln(True)
-    print(aln)
-
-    with open("simulate_output.txt", "w") as file:
-        for seqrecord in aln._records:
-            file.write(f"{seqrecord.id}  {seqrecord.seq}\n")
-
-def conf_to_names (tree):
-  clades = [tree.clade]
-  while (clades):
-    nxt = []
-    for c in clades:
-      if c.confidence and not c.name:
-        c.name=str(c.confidence)
-        c.confidence=None
-        if c.clades:
-          nxt += c.clades
-    clades = nxt
+        newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
+        file.write(newick_str + "\n")
 
 if __name__ == "__main__":
     main()
