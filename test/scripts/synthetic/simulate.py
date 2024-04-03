@@ -1,6 +1,12 @@
 import sys, time, os, json
 import numpy as np
 
+from Bio import Phylo
+from io import StringIO
+import numpy as np
+from treetime.seqgen import SeqGen
+from treetime import GTR
+
 def newick(id, island, time_vector, anc, dec_1, dec_2):
     type = "active" if island[id] == 0 else "dormant"
 
@@ -130,7 +136,38 @@ def main():
         print(i, "|", dec_1[i], "|", dec_2[i])
 
     print()
-    print(newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2))
+    newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
+    print(newick_str)
+
+    handle = StringIO(newick_str)
+    tree = Phylo.read(handle, 'newick', rooted=True)
+    conf_to_names(tree)
+
+    pi = np.array([0.25, 0.25, 0.25, 0.25])
+    gtr = GTR.standard(model='hky', mu=1.0, pi=pi, kappa=0.1)
+    gtr_d = GTR.standard(model='hky', mu=0.1, pi=pi, kappa=0.1)
+
+    sq = SeqGen(10, tree=tree, gtr=gtr, gtr_d = gtr_d)
+    sq.evolve_sb()
+
+    aln = sq.get_aln(True)
+    print(aln)
+
+    with open("simulate_output.txt", "w") as file:
+        for seqrecord in aln._records:
+            file.write(f"{seqrecord.id}  {seqrecord.seq}\n")
+
+def conf_to_names (tree):
+  clades = [tree.clade]
+  while (clades):
+    nxt = []
+    for c in clades:
+      if c.confidence and not c.name:
+        c.name=str(c.confidence)
+        c.confidence=None
+        if c.clades:
+          nxt += c.clades
+    clades = nxt
 
 if __name__ == "__main__":
     main()
