@@ -360,6 +360,10 @@ public class SeedbankTree extends Tree {
      * @return true if types and times are "valid"
      */
     public boolean isValid() {
+    	// check root
+    	if (root.getLength() != 0.0 || ((SeedbankNode)root).getChangeCount() != 0)
+    		return false;
+    	
         return timesAreValid(root) && typesAreValid(root);
     }
     
