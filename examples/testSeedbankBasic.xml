@@ -1,33 +1,43 @@
-<beast version='2.0' namespace='beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution
-:seedbanktree.evolution.tree:seedbanktree.evolution.branchratemodel:seedbanktree.distributions:seedbanktree.operators'>
-	<!-- Four sequences each with 20 sites -->
+<beast version='2.0' namespace='beast.base.evolution:beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution
+:seedbanktree.evolution.tree:seedbanktree.evolution.branchratemodel:seedbanktree.distributions:seedbanktree.operators:seedbanktree.util'>
 	<data id='alignment' dataType='nucleotide'>
-		<sequence taxon='sample0' value='TAAGAGGGGAGAGCTCTCAC'/>
-		<sequence taxon='sample1' value='CTCGGAAGAGCGAGTCCCCC'/>
-		<sequence taxon='sample2' value='CCCCGGTAGGACGCACCCGG'/>
-		<sequence taxon='sample3' value='CCCTTATTGCCCGGGATCCA'/>
+		<sequence taxon='sample11' value='CGAATTATAAATGGCTAAAAGTAACAAATGCAGCTCCGTCGATGAAGTTTCACTCTACGCGCTGGGACTGGACGGATTGACAGAAACGCACAGTGTAAGTACAACCAGGCTGTTAGTAGAATGTAAAGCCGGACGGAGCCTGTAGCGCTATGTCCCTCATGCTGGGCAGTAAACTCCTGCTGCAACTGCAGGGGCGTGTTATGGGGTCACATCTAAAGGGGTCAACTCTCCGCACTCAGCTGCTTCATTGCCGGTAGAAATTAACCTATTAGTCGAGGTCACAAACGCATGTAGCTCAGC'/>
+		<sequence taxon='sample10' value='TGAGAACGTTTAGGACATGTCCGGTACTGCGCCTACGCGAAACCGGCACCGCCTACTCCGCAAGCTAGATTCACGTTAGTTGGTACAAGCCCACTTCTGCTTTCTCGCTTTTGGGTCTGACACAGCCCTAGGGGCCGGGCTGGGCTTCACGCGGTATGGTCCTACAGGAGCCTGATTTACTTGATCGCCCAGTGCAGCCCGAATCTCCGAGCTCTGAGTGATACTCTGTTCGTCCTGCTGGCCGGCTCCGATGGCTCATGTCGGCGGCTCTCATCTAAGGTCTCTCATAAATCTTTAGGG'/>
+		<sequence taxon='sample13' value='TCATATTTATGCCCTGTGTTTACACTCAATAAAAATGGGGAGAACCCTATAGGGCGCTACCCAGAGATCTTGCTGTCCGCATCATCGAATATATCCTCCCTTAGTAAAACCCGTAGTGTAGTGGTTGACTAAACCGGCAGAAAATGGTAGTAATATCTTATAGTAGAACAACGTCGTACTGTGAAATTACTCTATTTGAGCTGGATACTCCAACGCAAAACTCGAATTGACACGTGGAAACTTGCATACGCTAGCTGGTCCGATTACCGTTACTAATAAAATCAGCCCGTTGTCGCAGAG'/>
+		<sequence taxon='sample14' value='GCCAGAACATCTTTGAGCAGACTGAGGGATGATTAGAGAGGATTAAGGAGAGCGATTCAGAGGATCAATATCTTCGATTCGGCTGTGCGACCTACAACCATCAGAGTAATCTGTTAGTTCGAAGATTTATACCGGAAACTCGTATCAGACGTTACGGACCCATTTGTGGTAGATTTGCACTGAGGCGCATGGACCCATCCGTCCCAGCTGAATCCGGTATGGAGCCGTCTGCGACTTCAGCATCCCCTTGAAGTTCCAGTAGTAATTACCAAGTCGCGAGAATATCTATACGCGAACGCC'/>
+		<sequence taxon='sample8' value='CCCCTTAGCGGACTACCGGTGACACATAGTGCCGTTTTGAAAAACGCGTCATCACAAAAAGTAGCCATACCGTCTATACGTGCAGGGAAAAAATACCGCCTGGCGTGATCGTCTAACTCGGCACTCGGCATGTGAAGGTCTCAGTGAGCCCCTCCCAGAGCATCCGGCCAGTCTGAGAAGAATATCGTGCAATGGGCGACACGCACCTGATCTTTAGACAGTACGTGTTTTAGTAATAGCCTGCTACCATGGGGAATATAAAGGTCAGGGCGACGAGCATCTCACCGATTAACCGGGACT'/>
+		<sequence taxon='sample9' value='CCCCTTAGCGGACTACCGGTGACACATAGTGCCGTTTTGAAAAACGCGTCATCACAAAAAGTAGCCATACCGTCTATACGTGCAGGGAAAAAATACCGCCTGGCATGATCGTCTAACTCCGCACTCGGCATGTGAAGGTCTCAGTGAGCCCCTCCCAGAGCATCCGGCCAGTCTGAGAAGAATATCGTGCAATGGGCGACACGCACCTGATCCTTAGACAGTACGTGTTTGAGTAATAGCCTGCTACCATGGGGAATATAAAGGTCAGGGCGACGAGCATCTCACCGATTAACCGGGACT'/>
+		<sequence taxon='sample1' value='CGATTTTATGGAGTCCCTGACATAAATGCAGCATTCGGAATGAATGCCTCCTCACATGATACAGCGCGACTGCCCGGACGTGAAGATAATGGGCTTGGCCAGCTGTTAGCAATACAGTCTGCCCACGGGTAATAGAGCTCGCAGTCAGCCCCTCCCATGTCAGGGAGGCTCTCATGGGAGCAGTACCGTACTGGGGCGCGATACACGTTACGTATACCCAATTAGCGATTTGGGTAGAACCTACAGGCATAAGACAGCGATGGGGCCATGCCAGCTGACTATCCCTCTACTGCTCGATAG'/>
+		<sequence taxon='sample2' value='CGATTTTATGGAGTCCCTGACATAAATGCCGCATTCGGAATGAATGCCTCCGCACATGATACAGCGCGACTGCCCCGACGTGAAGATAATGGGCTTGGCCAGCTGTTAGCAATACAGTCTGCCCACGGGTAATAGAGCTCGCAGTCAGCCCCTCCCATATCAGGGAGGCTCTCATGGGAGCAGTACCGTACTGGGGCGCGATACACGTTACGTATACCCAATTAGCGATTTGGGTAGAACCCACAGGCATAAGACAGCGATGGGGCCATGCCAGCTGACTATCCCTCTACTGCTCGATAG'/>
+		<sequence taxon='sample6' value='CGATTTTATGGAGTCCCTGACATAAATGCCGCATTCGGAATGAATGCCTCCGCACATGATACAGCGCGACTGCCCCGACGTGAAGATAATGGGCTTGGCCAGCTGTTAGCAATACAGTCTGCCCACGGGTAATAAAGCTCGCAGTCAGCCCCTCCCATATCAGGGAGGCTCTCATGGGAGCAGTACCGTACTGGGGCGCGATACACGTTACGTATACCCAATTAGCGATTTGGGTAGAACCCACAGGCATAAGACAGCGATGGGGCCATGCCAGCTGACTATCCCTCTACTGCTCGATAG'/>
+		<sequence taxon='sample12' value='CCCTTTCAGCGAGGCCCTGACATACATGCCGCATTCGGACTGAATGCCTCCGCACATCATACAGCGCTACCGCCGCGACCTGAAGATAATTGACTTCGCCAGCTGGGAGCATTACAGTCTGCCCACGGGTAATAGAGGTCGCACTCAGTCCCTCCCATAACAGCGAGTCTCTCATGGGAGCAGTACCGGCCTTGGGCGCCATACACATTACGTCTACCCAATTAGCGATCTGGCAAGAACCCACTGGCGTAGGAAAGCGATAAGGCCATGCCAGCTGACTATCCCTCTACTGCTGGATAT'/>
+		<sequence taxon='sample5' value='CCCTTTTAGGGAGTCCCTAAGATACACGCCGCATTCGAAATGTATGCCTCCGCACATCATACAGCGCGACCGCCGCGGCGTGGAGATTATTGACTTCGCCCGCTGTGAGCATTACAGTATGCCCACCGGCAATAGAGGTCGCAATCAGTACCTACCATAACAACGAGGCGCTCATGCGAGCAGTCCCGGCCTTGGGCGCGATACACCTTACGTCTACCCAATTAGCGATCTGGGTAGAACCCACGGGCGTAGGCAAGCGATAAGGCCATACCAGCTGACTATCCCCCTACTGCTGGATAT'/>
+		<sequence taxon='sample0' value='CCCTTTTAGGGAGTCGCTAAGATACACCCCGCATCCGAAATGAATGCCTCCGCACTACATGCAGCGCCACCGCCGCGACGTGGAGATTATTTACTTCGCCAGCTGTGAGCATTACAGTCTCCCCATGGCCAATAGAGGTCGCAATCAGTACCTACCATAACAGCGAGGGGCTCATGGGAGCAGTCCCGGCCATGGGCGCGAGACACCTTACATTTACCCAATTAGCGATCTGGGTAGAACCCACGGGCGTAGGGAAGCGATAAGCCCAAACCTGCTGACTATCCCTCCACAGCTGGATAT'/>
+		<sequence taxon='sample7' value='CCCTTTTAGGGAGTCCCTGACATACATGCCGCATTCGGAATGAAGGCCTCCGCACATGATACAGCGCGACCCCCCATACGTCTAGATAATTGACTTCTCAAGCTGATAACACTACAGTGTGCCCACGTGCATAACATATTGCACTCAGTCACTCCCATAATATCGAGGCGCTCATGGGAGCAGACCCGGCCTTGGGCGCGATACACCTTACGTCTAACCAAATAGCCATCTGGGTAGAAGCCACTGGCGTAGGAAAGCGATAGGGCCATATCACCTGACTCTCCCACTACTGCTGGCTTT'/>
+		<sequence taxon='sample4' value='CCCGTTTAGGGAGTCCCTGACATACATGCCGCTTGCGGCGAGAATGACTCTGCACATGATACAGAGCGACCCCCGCTCCGTGAAGATAATAGACTTCGTGAGCTGAGAACATTACAGTCTGCCCACGGGTAAAACACGTCGCACTCAGTCCCTGCCATGAGATCGAGGCTCTGATGGGAGCATAACCGGCCTTGGCCGCGATACACCTTACGTCTACCCGAATAGCGATCTGGCTAGAACCCACTGGCGCAGTAAAGCGATAGGGTCATACTAGCTGACAATCGCTCTACTGCTGGATAT'/>
+		<sequence taxon='sample3' value='CCCTCATAGGGAGTGCCTGACAGACATGCCGCATGCGGCAAGAATGACTCCGCACATGATACAGCGCGACCCCCGCTCCGTGAAGATAATTGAATTCGTCGGGTGATAACATTTCAGTCTCCCCACGGGTAAAACAGGTCGCACTCAGTCCCTCCCATAAGAGCGAGGCTCTCATGGGAGCATAACCGGCCTTTGCCGCGATACACCTTACCTCTACCCAAATAGCGAGCTGGCTAGCACCCACTGGCGTGGGTAAGCGATAGGACCATACCCGTTGACTATCCCTCTACTGCTGGATAT'/>
 	</data>
 	
 	<!-- Trait data associated with sequences -->
-	<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname="type" 
-	value='sample0=active, sample1=dormant, sample2=active, sample3=dormant'>
+	<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname='type' 
+		value='sample11=dormant, sample10=dormant, sample13=dormant, sample14=dormant, sample8=active, sample9=active, sample1=active, sample2=active, sample6=active, sample12=dormant, sample5=active, sample0=active, sample7=active, sample4=active, sample3=active'>
 		<taxa spec='TaxonSet' alignment='@alignment'/>
 	</typeTraitSet>
-	<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname="date-backward" 
-	value='sample0=0, sample1=0, sample2=0, sample3=0'>
+	<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname='date-backward' 
+		value='sample11=0.0, sample10=0.0, sample13=0.0, sample14=0.0, sample8=0.0, sample9=0.0, sample1=0.0, sample2=0.0, sample6=0.0, sample12=0.0, sample5=0.0, sample0=0.0, sample7=0.0, sample4=0.0, sample3=0.0'>
 		<taxa spec='TaxonSet' alignment='@alignment'/>
 	</timeTraitSet>
 	
 	<!-- Transition model -->
 	<transitionModel spec='TransitionModel' id='transitionModel'>
-		<transitionRate spec='RealParameter' id='transitionRate' value='1.0'/>
-		<relativeSeedbankSize spec='RealParameter' id='relativeSeedbankSize' value='1.0'/>
-		<activePopSize spec='RealParameter' id='activePopSize' value='5.0' estimate='false'/>
+		<transitionRate spec='RealParameter' id='transitionRate' value='0.2'/>
+		<relativeSeedbankSize spec='RealParameter' id='relativeSeedbankSize' value='0.3'/>
+		<activePopSize spec='RealParameter' id='activePopSize' value='1.0' estimate='false'/>
 	</transitionModel>
 	
 	<!-- Branch clock model -->
 	<branchRateModel spec='SeedbankClockModel' id='branchRateModel'>
-		<dormantScaling spec='RealParameter' id='dormantScaling' value='0.5'/>
+		<dormantScaling spec='RealParameter' id='dormantScaling' value='1.0'/>
 		<tree idref='sbTree'/>
 	</branchRateModel>
 	
@@ -37,28 +47,26 @@
 	</siteModel>
 	
 	<!-- Priors -->
-	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity'>
+	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity' checkValidity='true'>
 		<tree idref='sbTree'/>
 		<transitionModel idref='transitionModel'/>
 	</distribution>
 		
 	<distribution spec='CompoundDistribution' id='prior'>
-		
-		
 		<distribution spec='beast.base.inference.distribution.Prior' x='@transitionRate'>
-			<distr spec='beast.base.inference.distribution.OneOnX'/>
+			<distr spec='beast.base.inference.distribution.Uniform'/>
 		</distribution>
 		
 		<distribution spec='beast.base.inference.distribution.Prior' x='@relativeSeedbankSize'>
-			<distr spec='beast.base.inference.distribution.OneOnX'/>
+			<distr spec='beast.base.inference.distribution.Uniform'/>
 		</distribution>
 		
 		<distribution spec='beast.base.inference.distribution.Prior' x='@activePopSize'>
-			<distr spec='beast.base.inference.distribution.OneOnX'/>
+			<distr spec='beast.base.inference.distribution.Uniform'/>
 		</distribution>
 		
 		<distribution spec='beast.base.inference.distribution.Prior' x='@dormantScaling'>
-			<distr spec='beast.base.inference.distribution.OneOnX'/>
+			<distr spec='beast.base.inference.distribution.Uniform'/>
 		</distribution>
 	</distribution>
 	
@@ -70,7 +78,7 @@
 		<branchRateModel idref='branchRateModel'/>
 	</distribution>
 	
-	<run spec='MCMC' id='mcmc' chainLength='100000' storeEvery='10000'>
+	<run spec='MCMC' id='mcmc' chainLength='300000' storeEvery='1000'>
 		<init spec="SeedbankTreeInitialiser">
 			<transitionModel idref='transitionModel'/>
 			<initial idref='sbTree'/>
@@ -92,25 +100,32 @@
 			<distribution idref='seedbankTreeDensity'/>
 		</distribution>
 		
-<!-- 		<operator spec='ScaleOperator' id='transitionRateScaler'
- 	      parameter='@transitionRate' scaleFactor='0.8' weight='1'>
+		<operator spec='ScaleOperator' id='transitionRateScaler'
+ 	      parameter='@transitionRate' scaleFactor='0.6' weight='1'>
      	</operator>
      	<operator spec='ScaleOperator' id='relativeSeedbankSizeScaler'
- 	      parameter='@relativeSeedbankSize' scaleFactor='0.8' weight='1'>
+ 	      parameter='@relativeSeedbankSize' scaleFactor='0.6' weight='1'>
      	</operator>
      	<operator spec='ScaleOperator' id='dormantScalingScaler'
- 	      parameter='@dormantScaling' scaleFactor='0.8' weight='1'>
-     	</operator> -->
+ 	      parameter='@dormantScaling' scaleFactor='0.6' weight='1'>
+     	</operator>
      	
 		
 		<operator spec='SeedbankTreeScale' id='treeScale'
  	      sbTree='@sbTree' scaleFactor='0.8' weight='1'>
      	</operator>
-<!--      	<operator spec='SeedbankTreeDormantScale' id='treeDormantScale'
+		<operator spec='SeedbankTreeDormantScale' id='treeDormantScale'
  	      sbTree='@sbTree' weight='1'>
-     	</operator> -->
+     	</operator>
 		<operator spec='SeedbankTreePairBirthDeath' id='treePBD'
  	      sbTree='@sbTree' weight='1'>
+     	</operator>
+     	
+     	<operator spec='WilsonBalding' id='treeWB'
+ 	      tree='@sbTree' weight='1'>
+     	</operator>
+     	<operator spec='SubtreeSlide' id='treeSS'
+ 	      tree='@sbTree' size='0.4' weight='1'>
      	</operator>
 		
 		<logger id='screenlog' logEvery='1000'>
@@ -120,8 +135,26 @@
 			<log idref='treeLikelihood'/>
 		</logger>
 		
+		<logger id="tracelog" fileName='testSeedbankBasic.log' logEvery='1000'>
+            <log idref='posterior'/>
+			<log idref='prior'/>
+			<log idref='seedbankTreeDensity'/>
+			<log idref='treeLikelihood'/>
+			<log id='treeStatLogger' spec='TreeStatLogger' tree='@sbTree'/>
+			<log id='typeLengthsLogger' spec='TypeLengthsLogger' sbTree='@sbTree'/>
+			<log id='typeChangeCountsLogger' spec='TypeChangeCountsLogger' sbTree='@sbTree'/>
+			<log id='nodeTypeCountsLogger' spec='NodeTypeCountsLogger' sbTree='@sbTree'/>
+			<log idref='transitionRate'/>
+			<log idref='relativeSeedbankSize'/>
+			<log idref='dormantScaling'/>
+        </logger>
+		
 		<logger fileName='testSeedbankBasic.trees' logEvery='1000' id='treelog' mode='tree'>
 			<log idref='sbTree'/>
+		</logger>
+		
+		<logger fileName='testSeedbankBasic.metadata.trees' logEvery='1000' id='metatreelog' mode='tree'>
+			<log id='treeMetaLogger' spec='TreeWithMetaDataLogger' tree='@sbTree' branchratemodel='@branchRateModel'/>
 		</logger>
 		
 		<logger fileName="testSeedbankBasic.map.trees" logEvery='1000' id='maptreelog' mode="tree">

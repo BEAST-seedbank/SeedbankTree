@@ -155,7 +155,7 @@
      	<!-- <operator spec='WilsonBalding' id='treeWB'
  	      tree='@sbTree' weight='1'>
      	</operator> -->
-     	<!-- <operator spec='TreeStretchOperator' id='treeWB'
+     	<!-- <operator spec='TreeStretchOperator' id='treeSO'
  	      tree='@sbTree' scaleFactor='0.001' weight='1'>
      	</operator> -->
 		

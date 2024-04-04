@@ -53,6 +53,10 @@ public class SeedbankNode extends Node {
     
     // Set node type
     public void setNodeType(int nodeType) {
+    	if (nodeType != 0 && nodeType != 1) {
+    		throw new IllegalArgumentException("Attempted to set node type to " + nodeType);
+    	}
+    	
         startEditing();
         this.nodeType = nodeType;
     }
