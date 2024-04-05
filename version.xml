@@ -5,6 +5,7 @@
         <provider classname="seedbanktree.evolution.tree.SeedbankNode"/>
         <provider classname="seedbanktree.evolution.tree.SeedbankTree"/>
         <provider classname="seedbanktree.evolution.tree.SeedbankTreeInitialiser"/>
+        <provider classname="seedbanktree.evolution.tree.SeedbankTreeFromNewick"/>
         <provider classname="seedbanktree.evolution.tree.TransitionModel"/>
         <provider classname="seedbanktree.distributions.SeedbankTreeDensity"/>
         <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModel"/>
