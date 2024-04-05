@@ -9,7 +9,8 @@
         <provider classname="seedbanktree.distributions.SeedbankTreeDensity"/>
         <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModel"/>
         <provider classname="seedbanktree.operators.SeedbankTreeDormantScale"/>
-        <provider classname="seedbanktree.operators.SeedbankTreePairBirthDeath"/>
+        <provider classname="seedbanktree.operators.SeedbankTreePairBirth"/>
+        <provider classname="seedbanktree.operators.SeedbankTreePairDeath"/>
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
         <provider classname="seedbanktree.util.MAPTreeLogger"/>
         <provider classname="seedbanktree.util.TypeLengthsLogger"/>

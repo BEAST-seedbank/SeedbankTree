@@ -6,7 +6,7 @@ import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
 import seedbanktree.evolution.tree.SeedbankTree;
 
-public class SeedbankTreePairBirthDeath extends SeedbankTreeOperator {
+public class SeedbankTreePairBirth extends SeedbankTreeOperator {
 	
 	@Override
 	public double proposal() {
@@ -30,12 +30,8 @@ public class SeedbankTreePairBirthDeath extends SeedbankTreeOperator {
             }
             edgeNum -= ((SeedbankNode)node).getChangeCount()+1;
         }
-        
-        // Complete either pair birth or pair death proposal:
-        if (Randomizer.nextDouble()<0.5)
-            return birthProposal(selectedNode, edgeNum, n, m);
-        else
-            return deathProposal(selectedNode, edgeNum, n, m);
+
+        return birthProposal(selectedNode, edgeNum, n, m);
 	}
 	
     /**
@@ -83,53 +79,5 @@ public class SeedbankTreePairBirthDeath extends SeedbankTreeOperator {
 //                - Math.log(2*(m + 2*n));
         return Math.log((m + 2*n - 2)*(tr-ts)*(tr-ts))
                 - Math.log(2*(m + 2*n));
-    }
-    
-    /**
-     * Colour change pair death proposal.
-     * 
-     * @param node Node above which selected edge lies
-     * @param edgeNum Number of selected edge
-     * @param n Number of nodes on tree
-     * @param m Number of colour changes currently on tree
-     * @return log of Hastings factor of move.
-     */
-    private double deathProposal(Node node, int edgeNum, int n, int m) {
-        
-        SeedbankNode sbNode = (SeedbankNode)node;
-        
-        int idx = edgeNum-1;
-        int sidx = edgeNum-2;
-        int ridx = edgeNum+1;
-        
-        if (sidx<-1 || ridx > sbNode.getChangeCount()) // Non-migration
-            return Double.NEGATIVE_INFINITY;
-        
-        double ts, tr;
-        int is, ir;
-        if (sidx<0) {
-            ts = node.getHeight();
-            is = sbNode.getNodeType();
-        } else {
-            ts = sbNode.getChangeTime(sidx);
-            is = sbNode.getChangeType(sidx);
-        }
-        
-        if (ridx>sbNode.getChangeCount()-1)
-            tr = node.getParent().getHeight();
-        else
-            tr = sbNode.getChangeTime(ridx);
-        ir = sbNode.getChangeType(ridx-1);
-        
-//        if (is != ir)
-//            return Double.NEGATIVE_INFINITY;
-        
-        sbNode.removeChange(idx);
-        sbNode.removeChange(idx);
-        
-        return Math.log(2*(m + 2*n - 2))
-                - Math.log((m+2*n-4)*(tr-ts)*(tr-ts)); //Not sure where this equation is from
-    }
-	
-
+    }	
 }
