@@ -1,6 +1,6 @@
 {
-    "sample_size_1": 10,
-    "sample_size_2": 5,
-    "migration_rate": 0.2,
-    "island_2_relative_size": 0.5
+    "sample_size_1": 50,
+    "sample_size_2": 0,
+    "transition_rate": 0.5,
+    "relative_seedbank_size": 1.0
 }

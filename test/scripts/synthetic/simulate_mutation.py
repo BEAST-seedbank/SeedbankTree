@@ -144,13 +144,13 @@ def main():
      type_ = []
      time_ = []
      for n in tree.get_terminals():
-        file.write(f"<sequence taxon='sample{n.name}' value='{"".join(n.ancestral_sequence)}'/>\n")
+        file.write(f"<sequence taxon='sample{n.name}' value='{"".join(n.ancestral_sequence)}'/>\n\t\t")
         type_.append(f"sample{n.name}=active" if "active" in n.comment else f"sample{n.name}=dormant")
         time_.append(f"sample{n.name}=0.0")
      file.write("\n")
-     file.write(f"<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname='type' \nvalue='{", ".join(type_)}'>")
+     file.write(f"<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname='type' \n\t\tvalue='{", ".join(type_)}'>")
      file.write("\n")
-     file.write(f"<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname='date-backward' \nvalue='{", ".join(time_)}'>")
+     file.write(f"<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname='date-backward' \n\t\tvalue='{", ".join(time_)}'>")
   
   sanity_check(tree, sq, config_data["alpha"])
 

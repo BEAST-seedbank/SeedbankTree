@@ -35,8 +35,9 @@ def main():
 
     sample_size_1 = config_data["sample_size_1"]
     sample_size_2 = config_data["sample_size_2"]
-    island_2_relative_size = config_data["island_2_relative_size"]
-    migration_rate = config_data["migration_rate"]
+    relative_seedbank_size = config_data["relative_seedbank_size"]
+    transition_rate = config_data["transition_rate"]
+    log = ["sample_size_1 " + str(sample_size_1), "sample_size_2 " + str(sample_size_2), "relative_seedbank_size " + str(relative_seedbank_size), "transition_rate " + str(transition_rate), ""]
 
     np.random.seed(int(time.time() * os.getpid()) % (2 ** 32 - 1))
     next_parent = sample_size_1 + sample_size_2
@@ -52,16 +53,18 @@ def main():
     for i in active_2:
         island[i] = 1
 
+    log.append(f"active dormant | c_rate m_rate_1 m_rate_2 total_rate | sim_time coin")
     while len(active_1) + len(active_2) > 1:
         # elif model == 2:
         c_rate_1 = len(active_1) * (len(active_1) - 1) / 2
         c_rate_2 = 0.0
-        m_rate_1 = len(active_1) * migration_rate
-        m_rate_2 = len(active_2) * migration_rate * island_2_relative_size
+        m_rate_1 = len(active_1) * transition_rate
+        m_rate_2 = len(active_2) * transition_rate * relative_seedbank_size
 
         total_rate = c_rate_1 + c_rate_2 + m_rate_1 + m_rate_2
         sim_time += np.random.exponential(1.0 / total_rate)
         coin = np.random.uniform()
+        log.append(f"{len(active_1)} {len(active_2)} | {c_rate_1} {m_rate_1} {m_rate_2} {total_rate} | {sim_time} {coin}")
         
         if coin < c_rate_1 / total_rate:
             child_1 = np.random.randint(len(active_1))
@@ -111,6 +114,9 @@ def main():
 
         newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
         file.write(newick_str + "\n")
+    
+    with open("simulate_tree_log.txt", "w") as file:
+        file.write("\n".join(log))
 
 if __name__ == "__main__":
     main()
