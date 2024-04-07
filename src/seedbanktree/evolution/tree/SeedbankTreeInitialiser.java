@@ -214,6 +214,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         throw new RuntimeException("No live nodes remaining end of "
                 + "structured coalescent simulation!");
     }
+}
     
     /**
      * Obtain propensities (instantaneous reaction rates) for coalescence and
