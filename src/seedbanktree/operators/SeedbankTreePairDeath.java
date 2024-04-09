@@ -1,5 +1,6 @@
 package seedbanktree.operators;
 
+import beast.base.core.Input;
 import beast.base.evolution.tree.Node;
 import beast.base.inference.util.InputUtil;
 import beast.base.util.Randomizer;
@@ -8,6 +9,8 @@ import seedbanktree.evolution.tree.SeedbankTree;
 
 public class SeedbankTreePairDeath extends SeedbankTreeOperator {
 	
+	public Input<Boolean> dormantOnlyInput = new Input<>("dormantOnly", "only remove dormant sections (default false)", false);
+
 	@Override
 	public double proposal() {
 		final SeedbankTree sbTree = (SeedbankTree)InputUtil.get(seedbankTreeInput, this);
@@ -53,6 +56,9 @@ public class SeedbankTreePairDeath extends SeedbankTreeOperator {
         
         if (sidx<-1 || ridx > sbNode.getChangeCount())
             return Double.NEGATIVE_INFINITY;
+        
+        if (sbNode.getChangeType(idx) != 0 && dormantOnlyInput.get())
+        	return Double.NEGATIVE_INFINITY;
         
         double ts, tr;
         if (sidx<0) {
