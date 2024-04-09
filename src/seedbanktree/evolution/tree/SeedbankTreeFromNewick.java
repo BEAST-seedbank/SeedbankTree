@@ -46,6 +46,8 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
                 "taxa", dataInput.get());
 
         initFromFlatTree(parser, true);
+        
+        initStateNodes();
 	}
 	
     // Methods for StateNodeInitialiser interface
