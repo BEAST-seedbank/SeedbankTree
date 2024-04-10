@@ -1,36 +1,20 @@
 from typing import List
 import numpy as np
+import sys, json
 
-N_LEAVES = 0
-LEAF_NAMES = []
-LEAF_TYPES = []
-LEAF_TIMES = []
-
-#### Input format discuss
-#### Init and validate
-#### Output format discuss
-
-class SeedbankNode: # TODO: implement - IDK if this is all we need as far as i can tell it probably is
+class SeedbankNode:
     def __init__(self):
         self.nr = None
         self.ID = None
         self.height = None
-        self.node_type = None
-        # SeedbankNode.java
+        self.node_type = 0 # 0: dormant, 1: active
         self.n_type_changes = 0
         self.change_types = []
         self.change_times = []
-
-    def start_editing(): # ?????????? Discuss
-        # I am kind of confused how to implement this
-        # /src/beast/base/evolution/tree/Node.java
-        # /src/beast/base/evolution/tree/Tree.java
-        pass
     
-    def add_change(self, new_type: int, time: float): # TODO: implement
+    def add_change(self, new_type: int, time: float):
         # TODO: Verify that type change is valid? (actually a type change)
     	# TODO: Verify that change time added is actually in between times?
-        self.start_editing()
         self.change_types.append(new_type)
         self.change_times.append(time)
         self.n_type_changes += 1
@@ -58,27 +42,7 @@ class MigrationEvent(SBEvent):
         self.to_type = to_type
         self.time = time
 
-def init_and_validate():
-    """
-    ???? discuss
-    """
-    # // Obtain required parameters from inputs:
-    #        transitionModel = transitionModelInput.get();
-
-    # Obtain leaf color array
-    leaf_types = []
-    leaf_names = []
-
-    # Fill leaf color array discuss
-
-    n_leaves = len(leaf_types)
-
-    # Set leaf times if specified
-    leaf_times = []
-    ## ????
-    
-
-def simulate_tree() -> SeedbankNode:
+def simulate_tree(n_leaves: int, leaf_names: List[str], leaf_types: List[str], leaf_times: List[float]) -> SeedbankNode:
     """
     Generates tree using the specified list of active leaf nodes 
     using the seedbank coalescent.
@@ -86,13 +50,8 @@ def simulate_tree() -> SeedbankNode:
     Returns:
         Root node of generated tree.
     """
-    # Read in global variables ??????? Discuss
-    n_leaves = N_LEAVES
-    leaf_names = LEAF_NAMES
-    leaf_types = LEAF_TYPES
-    leaf_times = LEAF_TIMES
 
-    # Initialize node createion counter
+    # Initialize node creation counter
     next_node_nr = 0
 
     # Initialize node
@@ -115,14 +74,14 @@ def simulate_tree() -> SeedbankNode:
 
     # Allocate prepensity lists
     migration_prop = [0.0, 0.0]
-    coalesce_prop = [0.0, 0.0]
+    coalesce_prop = [0.0]
     t = 0
 
     while total_nodes_remaining(live_nodes) > 1 or total_nodes_remaining(dead_nodes):
-        # Step 1: Calculate propensities ?????
+        # Step 1: Calculate propensities
         total_prop = update_propensities(migration_prop, coalesce_prop, live_nodes)
 
-        # Step 2: Determine next event ?????
+        # Step 2: Determine next event
         event = get_next_event(migration_prop, coalesce_prop, total_prop, t)
 
         # Step 3: Handle activation of nodes
@@ -149,7 +108,7 @@ def simulate_tree() -> SeedbankNode:
         # Step 5: Keep track of time increment
         t = event.time 
 
-    print("SEEDBANKTREEINITIALIZER SIMULATED")
+    print("SEEDBANKTREEINITIALISER SIMULATED")
     # TODO: assert here that the remaining live node must be of the active type?
     # Return sole remaining live node as root
     for node_list in enumerate(live_nodes):
@@ -195,10 +154,10 @@ def update_propensities(migration_prop: List[float], coalesce_prop: List[float],
 
     return total_prop
 
-def transition_model(string):
+def transition_model(string): # not implemented
     """
-    Discuss what is this again?
     """
+    # TODO: actual implementation of transition_model
     if string == "getPopSize(1)":
         return 1
     elif string == "getBackwardRate(1, 0)":
@@ -319,6 +278,28 @@ def select_random_sibling(node_list: List[SeedbankNode], node: SeedbankNode) -> 
         n += 1
     return node_list[n]
 
-def main():
+def stdout_tree(root: SeedbankNode):
+    """
+    Print the newick string of Node root in the standard output.
+
+    Parameter:
+        root (SeedbankNode): Root of the tree to be converted to a newick string.
+    """
     pass
+
+def main():
+    if len(sys.argv) != 2:
+        print("Call", sys.argv[0], "<path to config file>")
+        sys.exit(1)
+    
+    with open(sys.argv[1]) as f:
+        config_data = json.load(f)
+
+    n_leaves = config_data["n_leaves"]
+    leaf_names = config_data["leaf_names"]
+    leaf_types = config_data["leaf_types"]
+    leaf_times = config_data["leaf_times"]
+
+    root = simulate_tree(n_leaves, leaf_names, leaf_types, leaf_times)
+    stdout_tree(root)
 
