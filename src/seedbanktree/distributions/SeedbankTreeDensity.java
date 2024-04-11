@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import com.google.common.collect.Lists;
-
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
@@ -64,17 +62,13 @@ public class SeedbankTreeDensity extends Distribution {
         
         eventList = new ArrayList<>();
         lineageCountList = new ArrayList<>();
-        
-        // Ensure tree and migration model are compatible
-//        if (mtTree.hasTypeTrait() && !mtTree.getTypeSet().equals(migrationModel.getTypeSet()))
-//            throw new IllegalArgumentException("Tree and migration model have incompatible type sets.");
-    }
+	}
 
 	@Override
     public double calculateLogP() {
         
         // Check validity of tree if required:
-        if (checkValidity && sbTree.isDirtyCalculation() && !sbTree.isValid())
+        if (checkValidity && sbTree.somethingIsDirty() && !sbTree.isValid())
             return Double.NEGATIVE_INFINITY;
 
         // Ensure sequence of events is up-to-date:
@@ -254,8 +248,8 @@ public class SeedbankTreeDensity extends Distribution {
         }
 
         // Reverse event and lineage count lists (order them from tips to root):
-        eventList = Lists.reverse(eventList);
-        lineageCountList = Lists.reverse(lineageCountList);
+        Collections.reverse(eventList);
+        Collections.reverse(lineageCountList);
 
     }
 

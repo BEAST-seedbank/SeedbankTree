@@ -2,9 +2,8 @@ package seedbanktree.evolution.tree;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-
-import com.google.common.collect.Lists;
 
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
@@ -595,8 +594,8 @@ public class SeedbankTree extends Tree {
                 }
 
                 // Order changes to being from youngest to oldest:
-                colours = Lists.reverse(colours);
-                times = Lists.reverse(times);
+                Collections.reverse(colours);
+                Collections.reverse(times);
 
                 switch (flatTreeNode.getChildCount()) {
                     case 0:
