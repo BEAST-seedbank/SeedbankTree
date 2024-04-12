@@ -15,6 +15,7 @@
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
         <provider classname="seedbanktree.util.MAPTreeLogger"/>
         <provider classname="seedbanktree.util.TypeLengthsLogger"/>
+        <provider classname="seedbanktree.util.DormantPercentage"/>
         <provider classname="seedbanktree.util.TypeChangeCountsLogger"/>
         <provider classname="seedbanktree.util.NodeTypeCountsLogger"/>
     </service>
