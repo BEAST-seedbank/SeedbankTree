@@ -11,10 +11,11 @@ class SeedbankNode:
         self.n_type_changes = 0
         self.change_types = []
         self.change_times = []
+        self.parent = None
+        self.left = None
+        self.right = None
     
     def add_change(self, new_type: int, time: float):
-        # TODO: Verify that type change is valid? (actually a type change)
-    	# TODO: Verify that change time added is actually in between times?
         self.change_types.append(new_type)
         self.change_times.append(time)
         self.n_type_changes += 1
@@ -42,7 +43,7 @@ class MigrationEvent(SBEvent):
         self.to_type = to_type
         self.time = time
 
-def simulate_tree(n_leaves: int, leaf_names: List[str], leaf_types: List[str], leaf_times: List[float]) -> SeedbankNode:
+def simulate_tree(n_leaves: int, leaf_names: List[str], leaf_types: List[str], leaf_times: List[float], params) -> SeedbankNode:
     """
     Generates tree using the specified list of active leaf nodes 
     using the seedbank coalescent.
@@ -79,7 +80,7 @@ def simulate_tree(n_leaves: int, leaf_names: List[str], leaf_types: List[str], l
 
     while total_nodes_remaining(live_nodes) > 1 or total_nodes_remaining(dead_nodes):
         # Step 1: Calculate propensities
-        total_prop = update_propensities(migration_prop, coalesce_prop, live_nodes)
+        total_prop = update_propensities(migration_prop, coalesce_prop, live_nodes, params)
 
         # Step 2: Determine next event
         event = get_next_event(migration_prop, coalesce_prop, total_prop, t)
@@ -108,10 +109,8 @@ def simulate_tree(n_leaves: int, leaf_names: List[str], leaf_types: List[str], l
         # Step 5: Keep track of time increment
         t = event.time 
 
-    print("SEEDBANKTREEINITIALISER SIMULATED")
-    # TODO: assert here that the remaining live node must be of the active type?
     # Return sole remaining live node as root
-    for node_list in enumerate(live_nodes):
+    for i, node_list in enumerate(live_nodes):
         if node_list:
             return node_list[0]
         
@@ -128,7 +127,7 @@ def total_nodes_remaining(nodes: List[List[SeedbankNode]]) -> int:
     """
     return len(nodes[0]) + len(nodes[1])
 
-def update_propensities(migration_prop: List[float], coalesce_prop: List[float], live_nodes: List[List[SeedbankNode]]) -> float:
+def update_propensities(migration_prop: List[float], coalesce_prop: List[float], live_nodes: List[List[SeedbankNode]], params) -> float:
     """
     Obtain propensities (instantaneous reaction rates) for coalescence and
     migration events.
@@ -138,11 +137,11 @@ def update_propensities(migration_prop: List[float], coalesce_prop: List[float],
     """
     total_prop = 0
 
-    N_a = transition_model("getPopSize(1)")
+    N_a = params["N"]
     k_a = len(live_nodes[1])
     k_d = len(live_nodes[0])
-    m_ad = transition_model("getBackwardRate(1, 0)")
-    m_da = transition_model("getBackwardRate(0, 1)")
+    m_ad = params["c"]
+    m_da = params["c"] * params["K"]
 
     coalesce_prop[0] = k_a * (k_a - 1) / (2.0 * N_a)
     total_prop += coalesce_prop[0]
@@ -151,19 +150,15 @@ def update_propensities(migration_prop: List[float], coalesce_prop: List[float],
     migration_prop[0] = k_d * m_da
     total_prop += migration_prop[1]
     total_prop += migration_prop[0]
-
     return total_prop
 
-def transition_model(string): # not implemented
-    """
-    """
-    # TODO: actual implementation of transition_model
-    if string == "getPopSize(1)":
-        return 1
-    elif string == "getBackwardRate(1, 0)":
-        return 2
-    elif string == "getBackwardRate(0, 1)":
-        return 3
+# def transition_model(string, c, K, N): # not implemented
+#     if string == "getPopSize(1)":
+#         return 1
+#     elif string == "getBackwardRate(1, 0)":
+#         return 2
+#     elif string == "getBackwardRate(0, 1)":
+#         return 3
 
 def get_next_event(migration_prop: List[float], coalesce_prop: List[float], total_prop: float, t: float) -> SBEvent:
     """
@@ -179,7 +174,7 @@ def get_next_event(migration_prop: List[float], coalesce_prop: List[float], tota
     """
     # Get time of next event
     if total_prop > 0:
-        t += np.random.exponential(total_prop)
+        t += np.random.exponential(1/total_prop)
     else:
         return NullEvent()
     
@@ -278,14 +273,34 @@ def select_random_sibling(node_list: List[SeedbankNode], node: SeedbankNode) -> 
         n += 1
     return node_list[n]
 
-def stdout_tree(root: SeedbankNode):
+def newick(root: SeedbankNode):
     """
     Print the newick string of Node root in the standard output.
 
     Parameter:
         root (SeedbankNode): Root of the tree to be converted to a newick string.
     """
-    pass
+    if root == None:
+        return "ERROR"
+    
+    mig_str = ''
+    last_height = root.height
+    for i in range(root.n_type_changes):
+        type_ = 'active' if root.change_types[i] == 1 else 'dormant'
+        mig_str += f'{root.change_times[i]-last_height})[&type={type_}]:'
+        last_height = root.change_times[i]
+
+    newick_str = '(' * root.n_type_changes
+
+    if root.left != None:
+        newick_str += '(' + newick(root.left) + ',' + newick(root.right) + ')'
+
+    type_ = 'active' if root.node_type == 1 else 'dormant'
+    newick_str += f'{root.ID}[&type={type_}]:'
+    newick_str += mig_str
+    newick_str += "0.0;" if not root.parent else str(root.parent.height - last_height)
+
+    return newick_str
 
 def main():
     if len(sys.argv) != 2:
@@ -299,7 +314,17 @@ def main():
     leaf_names = config_data["leaf_names"]
     leaf_types = config_data["leaf_types"]
     leaf_times = config_data["leaf_times"]
+    params = {}
+    params['c'] = config_data['c']
+    params['K'] = config_data['K']
+    params['N'] = config_data['N']
 
-    root = simulate_tree(n_leaves, leaf_names, leaf_types, leaf_times)
-    stdout_tree(root)
+    root = simulate_tree(n_leaves, leaf_names, leaf_types, leaf_times, params)
+    string = newick(root)
 
+    with open('seedbank_tree_initialiser_output.txt', 'w') as output:
+        output.write(string)
+
+
+if __name__ == '__main__':
+    main()
