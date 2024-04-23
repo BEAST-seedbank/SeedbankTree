@@ -1,3 +1,11 @@
+###################################
+# Seedbank coalescent simulation converted from 
+# SeedbankTreeInitialiser simulate() function.
+#
+# python3 seedbank_tree_initialiser.py <config_file>
+#
+###################################
+
 from typing import List
 import numpy as np
 import sys, json

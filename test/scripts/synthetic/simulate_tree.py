@@ -113,7 +113,7 @@ def main():
         #     file.write(f"{i}|{dec_1[i]}|{dec_2[i]}\n")
 
         newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
-        file.write(newick_str + "\n")
+        file.write(newick_str + ";\n")
     
     with open("simulate_tree_log.txt", "w") as file:
         file.write("\n".join(log))

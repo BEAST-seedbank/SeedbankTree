@@ -124,6 +124,8 @@ def main():
 
   aln = sq.get_aln(False)
   aln_all = sq.get_aln(True)
+  depths = tree.depths()
+  root_height = max(depths.values())
 
   with open("simulate_mutation_output.txt", "w") as file:
       file.write(f"sequence_length {seq_len}\n")
@@ -131,7 +133,7 @@ def main():
       file.write(f"number_of_nodes {tree.count_terminals() + len((list(tree.get_nonterminals())))}\n")
 
       file.write("leaves\n")
-      file.write("node_id node_seq\n")
+      file.write("node_id node_height node_seq\n")
       for seqrecord in aln._records:
           file.write(f"{seqrecord.id} {seqrecord.seq}\n")
 
@@ -139,18 +141,22 @@ def main():
       file.write("node_id node_seq\n")
       for seqrecord in aln_all._records:
           file.write(f"{seqrecord.id} {seqrecord.seq}\n")
+
+      file.write("\n\n")
+      for n in tree.get_terminals():
+         file.write(f"{n.name} {root_height - depths[n]}\n")
   
   with open("simulate_mutation_xml_output.txt", "w") as file:
      type_ = []
      time_ = []
      for n in tree.get_terminals():
-        file.write(f"<sequence taxon='sample{n.name}' value='{"".join(n.ancestral_sequence)}'/>\n\t\t")
+        file.write(f"<sequence taxon='sample{n.name}' value='{''.join(n.ancestral_sequence)}'/>\n\t\t")
         type_.append(f"sample{n.name}=active" if "active" in n.comment else f"sample{n.name}=dormant")
-        time_.append(f"sample{n.name}=0.0")
+        time_.append(f"sample{n.name}={root_height - depths[n]}")
      file.write("\n")
-     file.write(f"<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname='type' \n\t\tvalue='{", ".join(type_)}'>")
+     file.write(f"<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname='type' \n\t\tvalue='{', '.join(type_)}'>")
      file.write("\n")
-     file.write(f"<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname='date-backward' \n\t\tvalue='{", ".join(time_)}'>")
+     file.write(f"<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname='date-backward' \n\t\tvalue='{', '.join(time_)}'>")
   
   sanity_check(tree, sq, config_data["alpha"])
 
