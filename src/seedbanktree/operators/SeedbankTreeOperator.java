@@ -59,35 +59,36 @@ public abstract class SeedbankTreeOperator extends Operator{
         /* **********************************************************************/
 
         /**
-         * Disconnect edge <node,node.getParent()> by joining node's sister directly
-         * to node's grandmother and adding all colour changes previously on
-         * <node.getParent(),node.getParent().getParent()> to the new branch.
+         * Disconnect edge <node,node.getParent()> from the tree by joining 
+         * node's sister directly to node's grandmother and adding all colour 
+         * changes previously on <node.getParent(),node.getParent().getParent()> 
+         * to the new branch.
          *
          * @param node
          */
-        public void disconnectBranch(Node node) {
+        public void disconnectBranch(SeedbankNode node) {
 
             // Check argument validity:
-            Node parent = node.getParent();
+            SeedbankNode parent = (SeedbankNode) node.getParent();
             if (node.isRoot() || parent.isRoot())
                 throw new IllegalArgumentException("Illegal argument to "
                         + "disconnectBranch().");
 
-            Node sister = getOtherChild(parent, node);
+            SeedbankNode sister = (SeedbankNode) getOtherChild(parent, node);
 
             // Add colour changes originally attached to parent to those attached
             // to node's sister:
-            for (int idx = 0; idx < ((SeedbankNode)parent).getChangeCount(); idx++) {
-                int colour = ((SeedbankNode)parent).getChangeType(idx);
-                double time = ((SeedbankNode)parent).getChangeTime(idx);
-                ((SeedbankNode)sister).addChange(colour, time);
+            for (int idx = 0; idx < (parent).getChangeCount(); idx++) {
+                int colour = parent.getChangeType(idx);
+                double time = parent.getChangeTime(idx);
+                sister.addChange(colour, time);
             }
 
             // Implement topology change.
             replace(parent.getParent(), parent, sister);
 
             // Clear colour changes from parent:
-            ((SeedbankNode)parent).clearChanges();
+            parent.clearChanges();
             
             // Ensure BEAST knows to update affected likelihoods:
             parent.makeDirty(Tree.IS_FILTHY);
@@ -135,8 +136,8 @@ public abstract class SeedbankTreeOperator extends Operator{
          * @param destBranchBase
          * @param destTime
          */
-        public void connectBranch(Node node,
-                Node destBranchBase, double destTime) {
+        public void connectBranch(SeedbankNode node,
+        		SeedbankNode destBranchBase, double destTime) {
 
             // Check argument validity:
             if (node.isRoot() || destBranchBase.isRoot())
@@ -144,29 +145,26 @@ public abstract class SeedbankTreeOperator extends Operator{
                         + "connectBranch().");
 
             // Obtain existing parent of node and set new time:
-            Node parent = node.getParent();
+            SeedbankNode parent = (SeedbankNode) node.getParent();
             parent.setHeight(destTime);
-
-            SeedbankNode sbParent = (SeedbankNode)parent;
-            SeedbankNode sbDestBranchBase = (SeedbankNode)destBranchBase;
             
             // Determine where the split comes in the list of colour changes
             // attached to destBranchBase:
             int split;
-            for (split = 0; split < sbDestBranchBase.getChangeCount(); split++)
-                if (sbDestBranchBase.getChangeTime(split) > destTime)
+            for (split = 0; split < destBranchBase.getChangeCount(); split++)
+                if (destBranchBase.getChangeTime(split) > destTime)
                     break;
 
             // Divide colour changes between new branches:
-            sbParent.clearChanges();
-            for (int idx = split; idx < sbDestBranchBase.getChangeCount(); idx++)
-                sbParent.addChange(sbDestBranchBase.getChangeType(idx),
-                        sbDestBranchBase.getChangeTime(idx));
+            parent.clearChanges();
+            for (int idx = split; idx < destBranchBase.getChangeCount(); idx++)
+            	parent.addChange(destBranchBase.getChangeType(idx),
+                		destBranchBase.getChangeTime(idx));
 
-            sbDestBranchBase.truncateChanges(split);
+            destBranchBase.truncateChanges(split);
 
             // Set colour at split:
-            sbParent.setNodeType(sbDestBranchBase.getFinalType());
+            parent.setNodeType(destBranchBase.getFinalType());
 
             // Implement topology changes:
             replace(destBranchBase.getParent(), destBranchBase, parent);

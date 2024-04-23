@@ -13,6 +13,7 @@
         <provider classname="seedbanktree.operators.SeedbankTreePairBirth"/>
         <provider classname="seedbanktree.operators.SeedbankTreePairDeath"/>
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
+        <provider classname="seedbanktree.operators.SeedbankTreeWilsonBalding"/>
         <provider classname="seedbanktree.util.MAPTreeLogger"/>
         <provider classname="seedbanktree.util.TypeLengthsLogger"/>
         <provider classname="seedbanktree.util.DormantPercentage"/>
