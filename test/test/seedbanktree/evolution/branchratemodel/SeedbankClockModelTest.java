@@ -15,7 +15,7 @@ import beast.base.evolution.substitutionmodel.JukesCantor;
 import beast.base.evolution.substitutionmodel.Frequencies;
 import beast.base.evolution.substitutionmodel.GTR;
 import beast.base.inference.parameter.RealParameter;
-import seedbanktree.evolution.branchratemodel.SeedbankClockModel;
+import seedbanktree.evolution.branchratemodel.SeedbankClockModelOld;
 import seedbanktree.evolution.tree.SeedbankNode;
 import seedbanktree.evolution.tree.SeedbankTree;
 import seedbanktree.evolution.tree.SeedbankTreeFromNewick;
@@ -58,7 +58,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.5");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);
@@ -121,7 +121,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.5");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);
@@ -187,7 +187,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.7");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);
@@ -250,7 +250,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.5");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);
@@ -323,7 +323,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.5");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);
@@ -399,7 +399,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.7");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);
@@ -506,7 +506,7 @@ public class SeedbankClockModelTest {
 		RealParameter dormantScaling = new RealParameter();
 		dormantScaling.initByName("value", "0.09");
 		
-		SeedbankClockModel clockModel = new SeedbankClockModel();
+		SeedbankClockModelOld clockModel = new SeedbankClockModelOld();
 		clockModel.initByName(
 						"dormantScaling", dormantScaling,
 						"tree", sbTree);

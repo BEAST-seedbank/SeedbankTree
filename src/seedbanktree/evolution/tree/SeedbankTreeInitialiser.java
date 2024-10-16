@@ -9,10 +9,14 @@ import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
 import beast.base.inference.StateNode;
 import beast.base.inference.StateNodeInitialiser;
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.inference.parameter.RealParameter;
 import beast.base.util.Randomizer;
 
 public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeInitialiser {
-		
+	public Input<RealParameter> lambdasInput = new Input<> ("lambdas", "");
+    public Input<IntegerParameter> indicatorsInput = new Input<> ("indicators", "");
+    
 	public Input<TransitionModel> transitionModelInput = new Input<>("transitionModel", "transition model to use in simulator.", Validate.REQUIRED);
 	
 	private TransitionModel transitionModel;
@@ -199,8 +203,10 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         
         // Return sole remaining live node as root:
         for (List<SeedbankNode> nodeList : liveNodes)
-            if (!nodeList.isEmpty())
-                return nodeList.get(0);
+            if (!nodeList.isEmpty()) {
+            	((SeedbankNode) nodeList.get(0).getLeft()).clearChanges();
+            	return nodeList.get(0);
+            }
 
         // Should not fall through.
         throw new RuntimeException("No live nodes remaining end of "
@@ -228,6 +234,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         double m_da = transitionModel.getBackwardRate(0, 1);
         
         coalesceProp.set(0, k_a * (k_a - 1) / (2.0 * N_a));
+        coalesceProp.set(0, k_a * (k_a - 1) / (2.0 * 1));
         totalProp += coalesceProp.get(0);
         
         migrationProp.set(1, k_a * m_ad);
@@ -380,6 +387,29 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
                     + "seedbank tree initialiser on regular tree object");
         }
     	m_initial.get().assignFromWithoutID(this);
+    	
+    	if (lambdasInput.get() == null || indicatorsInput.get() == null) {
+    		return;
+    	}
+    				
+    	RealParameter lambdas = lambdasInput.get();
+        IntegerParameter indicators = indicatorsInput.get();
+        for (int i = 0; i < getNodeCount()-1; i++) {
+        	SeedbankNode sbNode = (SeedbankNode)getNode(i);
+        	if (sbNode.getChangeCount() != 0) {
+        		double sum = 0.0;
+        		int lastType = sbNode.getNodeType();
+        		double lastHeight = sbNode.getHeight();
+        		for (int j = 0; j < sbNode.getChangeCount(); j++) {
+        			if (lastType == 0)
+        				sum += sbNode.getChangeTime(j) - lastHeight;
+        			lastType = sbNode.getChangeType(j);
+        			lastHeight = sbNode.getChangeTime(j);
+        		}
+        		indicators.setValue(i, 1);
+        		lambdas.setValue(i, sum / sbNode.getLength());
+        	}
+        }
     }
 
     @Override
@@ -390,6 +420,8 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
                     + "seedbank tree initialiser on regular tree object");
         }
         stateNodes.add(m_initial.get());
+        stateNodes.add(lambdasInput.get());
+        stateNodes.add(indicatorsInput.get());
     }
 
 }

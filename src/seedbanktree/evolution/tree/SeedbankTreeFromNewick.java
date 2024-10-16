@@ -9,6 +9,8 @@ import beast.base.evolution.alignment.Alignment;
 import beast.base.evolution.tree.TreeParser;
 import beast.base.inference.StateNode;
 import beast.base.inference.StateNodeInitialiser;
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.inference.parameter.RealParameter;
 
 @Description("Class to initialize a SeedbankTree from single child newick tree with type metadata")
 public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeInitialiser {
@@ -22,6 +24,9 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
     public Input <Alignment> dataInput = new Input<> ("data", 
     		"Specifies the sequences represented by the leaves in the tree.");
     
+    public Input<RealParameter> lambdasInput = new Input<> ("lambdas", "");
+    public Input<IntegerParameter> indicatorsInput = new Input<> ("indicators", "");
+    
     
 	public SeedbankTreeFromNewick() {
     	m_initial.setRule(Validate.REQUIRED);
@@ -33,9 +38,7 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
     	typeLabel = typeLabelInput.get();
         activeTypeName = activeTypeNameInput.get();
         dormantTypeName = dormantTypeNameInput.get();
-        
-//        processTraits(m_traitList.get());
-        
+                
         // parse newick string
         TreeParser parser = new TreeParser();
         parser.initByName(
@@ -60,6 +63,29 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
                     + "seedbank tree initialiser on regular tree object");
         }
     	m_initial.get().assignFromWithoutID(this);
+    	
+    	if (lambdasInput.get() == null || indicatorsInput.get() == null) {
+    		return;
+    	}
+    				
+    	RealParameter lambdas = lambdasInput.get();
+        IntegerParameter indicators = indicatorsInput.get();
+        for (int i = 0; i < getNodeCount()-1; i++) {
+        	SeedbankNode sbNode = (SeedbankNode)getNode(i);
+        	if (sbNode.getChangeCount() != 0) {
+        		double sum = 0.0;
+        		int lastType = sbNode.getNodeType();
+        		double lastHeight = sbNode.getHeight();
+        		for (int j = 0; j < sbNode.getChangeCount(); j++) {
+        			if (lastType == 0)
+        				sum += sbNode.getChangeTime(j) - lastHeight;
+        			lastType = sbNode.getChangeType(j);
+        			lastHeight = sbNode.getChangeTime(j);
+        		}
+        		indicators.setValue(i, 1);
+        		lambdas.setValue(i, sum / sbNode.getLength());
+        	}
+        }
     }
 
     @Override
@@ -70,6 +96,8 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
                     + "seedbank tree initialiser on regular tree object");
         }
         stateNodes.add(m_initial.get());
+        stateNodes.add(lambdasInput.get());
+        stateNodes.add(indicatorsInput.get());
     }
 
 }

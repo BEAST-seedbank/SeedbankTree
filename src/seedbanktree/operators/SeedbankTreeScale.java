@@ -7,7 +7,7 @@ import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
 import seedbanktree.evolution.tree.SeedbankTree;
 
-public class SeedbankTreeScale extends SeedbankTreeOperator{
+public class SeedbankTreeScale extends SeedbankTreeOperator {
 
     final public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
     		"Scaling is restricted to the range [1/scaleFactor, scaleFactor]");

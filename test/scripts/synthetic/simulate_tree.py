@@ -3,7 +3,7 @@ import numpy as np
 
 ##########################################################################
 # To run this file:
-# python3 simulate_mutation.py <config.json>
+# python3 simulate_tree.py <config.json>
 # python3 simulate_tree.py simulate_tree.json
 #
 # Creates output file:
@@ -11,6 +11,22 @@ import numpy as np
 #
 
 def newick(id, island, time_vector, anc, dec_1, dec_2):
+    type = "active" if island[id] == 0 else "dormant"
+
+    length = 0.0 if anc[id] == -1 else time_vector[anc[id]] - time_vector[id]
+
+    newickStr = ""
+    if dec_1[id] != -1:
+        newickStr += "(" + newick(dec_1[id], island, time_vector, anc, dec_1, dec_2)
+        if dec_2[id] != -1:
+            newickStr += "," + newick(dec_2[id], island, time_vector, anc, dec_1, dec_2)
+        newickStr += ")"
+    newickStr += str(id) + "[&type=\"" + type + "\"]:" + str(length)
+
+    return newickStr
+
+# transition-less newick-string
+def newick2(id, island, time_vector, anc, dec_1, dec_2):
     type = "active" if island[id] == 0 else "dormant"
 
     length = 0.0 if anc[id] == -1 else time_vector[anc[id]] - time_vector[id]
@@ -67,6 +83,7 @@ def main():
         log.append(f"{len(active_1)} {len(active_2)} | {c_rate_1} {m_rate_1} {m_rate_2} {total_rate} | {sim_time} {coin}")
         
         if coin < c_rate_1 / total_rate:
+            # coalescent event
             child_1 = np.random.randint(len(active_1))
             child_2 = np.random.randint(len(active_1))
             while child_2 == child_1:
@@ -84,6 +101,7 @@ def main():
             next_parent += 1
             active_1.pop(max(child_1, child_2))
         elif coin < (total_rate - m_rate_2) / total_rate:
+            # active to dormant event
             child_1 = np.random.randint(len(active_1))
             anc.append(-1)
             island.append(1)
@@ -96,6 +114,7 @@ def main():
             active_1.pop(child_1)
             next_parent += 1
         else:
+            # dormant to active event
             child_1 = np.random.randint(len(active_2))
             anc.append(-1)
             island.append(0)
@@ -109,12 +128,41 @@ def main():
             next_parent += 1
 
     with open("simulate_tree_output.txt", "w") as file:
-        # for i in range(next_parent):
-        #     file.write(f"{i}|{dec_1[i]}|{dec_2[i]}\n")
-
         newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
         file.write(newick_str + ";\n")
     
+    with open("simulate_tree_output_2.txt", "w") as file:
+        # update dec_1, dec_2, anc arrays to skip transitions
+        root = next_parent-1
+        stack = [root]
+        
+        while stack:
+            node = stack.pop()
+
+            if (dec_1[node] == -1 and dec_2[node] == -1): #leaf node
+                continue
+
+            # update left
+            left = dec_1[node]
+            while (dec_1[left] != -1 and dec_2[left] == -1):
+                left = dec_1[left]
+            dec_1[node] = left
+            anc[left] = node
+            stack.append(left)
+
+            # update right
+            right = dec_2[node]
+            while (dec_1[right] != -1 and dec_2[right] == -1):
+                right = dec_1[right]
+            dec_2[node] = right
+            anc[right] = node
+            stack.append(right)
+
+        newick_str = newick(next_parent - 1, island, time_vector, anc, dec_1, dec_2)
+        newick_str = newick_str.replace("dormant", "active")
+        file.write(newick_str + ";\n")
+
+
     with open("simulate_tree_log.txt", "w") as file:
         file.write("\n".join(log))
 

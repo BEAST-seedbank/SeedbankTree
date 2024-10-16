@@ -1,4 +1,4 @@
-package seedbanktree.distributions;
+ package seedbanktree.distributions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,6 +90,8 @@ public class SeedbankTreeDensity extends Distribution {
                 double lambda = 0.0;
                 double N_a = transitionModel.getPopSize(1);
                 double theta = N_a * 2 * (1);
+                theta = N_a;
+                theta = 1;
                 int k_a = lineageCount[1];
                 int k_d = lineageCount[0];
                 double m_ad = transitionModel.getBackwardRate(1, 0);
@@ -105,6 +107,8 @@ public class SeedbankTreeDensity extends Distribution {
                 if (debugLogging) {
                 	System.out.println("TIME CONTRIBUTION");
                 	System.out.println(String.format("Interval: %f\nlogP: %f\n", delta_t, -delta_t*lambda));
+                	manualLog("spikeandslab/manualLogging.txt", "TIME CONTRIBUTION");
+                	manualLog("spikeandslab/manualLogging.txt", String.format("Interval: %f\nlogP: %f\n", delta_t, -delta_t*lambda));
                 }
             }
 
@@ -113,11 +117,15 @@ public class SeedbankTreeDensity extends Distribution {
                 case COALESCE:
                     double N = transitionModel.getPopSize(event.type);
                     double theta = N * 2 * (1);
+                    theta = N;
+                    theta = 1;
                     logP += Math.log(1.0/theta);
                     
                     if (debugLogging) {
                     	System.out.print("COALESCE EVENT: ");
                         System.out.println(String.format("logP: %f", Math.log(1.0/theta)));
+                        manualLog("spikeandslab/manualLogging.txt", "COALESCE EVENT: ");
+                        manualLog("spikeandslab/manualLogging.txt", String.format("logP: %f", Math.log(1.0/theta)));
                     }
 
                     break;
@@ -130,6 +138,8 @@ public class SeedbankTreeDensity extends Distribution {
                     if (debugLogging) {
                     	System.out.print(String.format("MIGRATE EVENT: %d to %d", event.type, event.destType));
                         System.out.println(String.format("logP: %f", Math.log(m)));
+                        manualLog("spikeandslab/manualLogging.txt", String.format("MIGRATE EVENT: %d to %d", event.type, event.destType));
+                        manualLog("spikeandslab/manualLogging.txt", String.format("logP: %f", Math.log(m)));
                     }
 
                     break;
@@ -141,6 +151,9 @@ public class SeedbankTreeDensity extends Distribution {
                 	if (debugLogging) {
                 		System.out.print("SAMPLE: ");
                         System.out.println("logP: 0");
+                        manualLog("spikeandslab/manualLogging.txt", "SAMPLE: ");
+                        manualLog("spikeandslab/manualLogging.txt", "logP: 0");
+                        
                 	}
                 	
                     break;
@@ -149,6 +162,10 @@ public class SeedbankTreeDensity extends Distribution {
             if (debugLogging) {
         		System.out.println("\nTotal logP: " + logP);
         		System.out.println("---");
+        		manualLog("spikeandslab/manualLogging.txt", "\nTotal logP: " + logP);
+        		manualLog("spikeandslab/manualLogging.txt", "---");
+        		manualLog("spikeandslab/manualLogging.txt", "");
+        		
         	}
         }
         

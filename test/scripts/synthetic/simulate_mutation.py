@@ -9,6 +9,7 @@ from treetime import GTR
 # To run this file:
 # python3 simulate_mutation.py <config.json> <tree.txt>
 # python3 simulate_mutation.py simulate_mutation.json simulate_tree_output.txt
+# python3 simulate_mutation.py simulate_mutation.json serial_beast/seedbank_tree_initialiser_output.txt
 #
 # Creates output file:
 # simulate_mutations_output.txt
@@ -91,6 +92,14 @@ def sanity_check(tree, sq, alpha):
   print(f"active_branch_len: {active_branch_len}, active_mutations: {active_mutations}")
   print(f"dormant_branch_len: {dormant_branch_len}, dormant_mutations: {dormant_mutations}")
   print(f"alpha {alpha}, length {dormant_branch_len/active_branch_len}, mutations {dormant_mutations/active_mutations}")
+
+  with open("simulate_mutation_output.txt", "a") as file:
+      file.write("\n")
+      file.write(f"Summary statistics\n")
+      file.write(f"active_branch_len: {active_branch_len}, active_mutations: {active_mutations}\n")
+      file.write(f"dormant_branch_len: {dormant_branch_len}, dormant_mutations: {dormant_mutations}\n")
+      file.write(f"alpha {alpha}, length {dormant_branch_len/active_branch_len}, mutations {dormant_mutations/active_mutations}\n")
+
   return
 
 def diff(seq1, seq2):
@@ -161,4 +170,4 @@ def main():
   sanity_check(tree, sq, config_data["alpha"])
 
 if __name__ == "__main__":
-    main()
+    main() 

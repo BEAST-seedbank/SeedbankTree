@@ -5,11 +5,13 @@ import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
 import beast.base.evolution.tree.Tree;
 import beast.base.inference.Operator;
+import beast.base.inference.parameter.IntegerParameter;
+import beast.base.inference.parameter.RealParameter;
 import seedbanktree.evolution.tree.SeedbankTree;
 import seedbanktree.evolution.tree.TransitionModel;
 import seedbanktree.evolution.tree.SeedbankNode;
 
-public abstract class SeedbankTreeOperator extends Operator{
+public abstract class SeedbankTreeOperator extends Operator {
 	
 	    final public Input<SeedbankTree> seedbankTreeInput = new Input<>(
             "sbTree", "Seedbank tree on which to operate.",
@@ -20,8 +22,19 @@ public abstract class SeedbankTreeOperator extends Operator{
             "Transition model for proposal distribution",
             Validate.OPTIONAL);
         
+        final public Input<RealParameter> lambdasInput = new Input<>(
+        		"lambdas", "Branch dormant fraction", Validate.OPTIONAL);
+    	final public Input<IntegerParameter> indicatorsInput = new Input<>(
+    			"indicators", "Dormancy indicators", Validate.OPTIONAL);;
+        
+        protected SeedbankTree sbTree;
+        protected TransitionModel transitionModel;
+        
         @Override
-        public void initAndValidate() {}
+        public void initAndValidate() {
+        	sbTree = seedbankTreeInput.get();
+        	transitionModel = transitionModelInput.get();
+        }
 
         /* ***********************************************************************
          * The following two methods are copied verbatim from TreeOperator.
@@ -57,6 +70,30 @@ public abstract class SeedbankTreeOperator extends Operator{
         }
         
         /* **********************************************************************/
+        
+        public void recalculateLambda(Node node) {
+        	if (lambdasInput.get() == null || indicatorsInput.get() == null)
+        		return;
+        	
+        	SeedbankNode sbNode = (SeedbankNode) node;
+        	int nodeNr = sbNode.getNr();
+        	
+        	double dormantLength = 0;
+        	double lastHeight = sbNode.getHeight();
+        	for (int i = 0; i < sbNode.getChangeCount(); i++) {
+        		if (sbNode.getChangeType(i) == 1) {
+        			dormantLength += sbNode.getChangeTime(i) - lastHeight;
+        		}
+        		lastHeight = sbNode.getChangeTime(i);
+        	}
+        	
+        	int indicator = dormantLength == 0 ? 0 : 1;
+    		indicatorsInput.get().setValue(nodeNr, indicator);
+    		lambdasInput.get().setValue(nodeNr, dormantLength / (sbNode.getLength()));
+        }
+        
+        
+        /* **********************************************************************/
 
         /**
          * Disconnect edge <node,node.getParent()> from the tree by joining 
@@ -66,7 +103,45 @@ public abstract class SeedbankTreeOperator extends Operator{
          *
          * @param node
          */
-        public void disconnectBranch(SeedbankNode node) {
+        public void disconnectBranch(Node node) {
+        	if (lambdasInput.get() != null && indicatorsInput.get() != null ) {
+        		
+        		// Check argument validity:
+                SeedbankNode parent = (SeedbankNode) node.getParent();
+                if (node.isRoot() || parent.isRoot())
+                    throw new IllegalArgumentException("Illegal argument to "
+                            + "disconnectBranch().");
+
+                SeedbankNode sister = (SeedbankNode) getOtherChild(parent, node);
+                
+                // Add colour changes originally attached to parent to those attached
+                // to node's sister:
+                for (int idx = 0; idx < (parent).getChangeCount(); idx++) {
+                    int colour = parent.getChangeType(idx);
+                    double time = parent.getChangeTime(idx);
+                    sister.addChange(colour, time);
+                }
+
+                // Implement topology change.
+                replace(parent.getParent(), parent, sister);
+                
+                recalculateLambda(sister);
+
+                // Clear colour changes from parent and self:
+                parent.clearChanges();
+                recalculateLambda(parent);
+                
+                // Clear colour changes from self:
+                ((SeedbankNode)node).clearChanges();
+                recalculateLambda(node);
+                
+                // Ensure BEAST knows to update affected likelihoods:
+                parent.makeDirty(Tree.IS_FILTHY);
+                sister.makeDirty(Tree.IS_FILTHY);
+                node.makeDirty(Tree.IS_FILTHY);
+        		
+                return;
+        	}
 
             // Check argument validity:
             SeedbankNode parent = (SeedbankNode) node.getParent();
@@ -136,8 +211,54 @@ public abstract class SeedbankTreeOperator extends Operator{
          * @param destBranchBase
          * @param destTime
          */
-        public void connectBranch(SeedbankNode node,
-        		SeedbankNode destBranchBase, double destTime) {
+        public void connectBranch(Node node,
+        		Node destBranchBase, double destTime) {
+        	if (lambdasInput.get() != null && indicatorsInput.get() != null ) {
+        		
+        		// Check argument validity:
+                if (node.isRoot() || destBranchBase.isRoot())
+                    throw new IllegalArgumentException("Illegal argument to "
+                            + "connectBranch().");
+
+                // Obtain existing parent of node and set new time:
+                SeedbankNode parent = (SeedbankNode) node.getParent();
+                parent.setHeight(destTime);
+                
+                // Determine where the split comes in the list of colour changes
+                // attached to destBranchBase:
+                SeedbankNode sbDestBranchBase = (SeedbankNode)destBranchBase;
+                int split;
+                for (split = 0; split < sbDestBranchBase.getChangeCount(); split++)
+                    if (sbDestBranchBase.getChangeTime(split) > destTime)
+                        break;
+
+                // Divide colour changes between new branches:
+                parent.clearChanges();
+                for (int idx = split; idx < sbDestBranchBase.getChangeCount(); idx++)
+                	parent.addChange(sbDestBranchBase.getChangeType(idx),
+                			sbDestBranchBase.getChangeTime(idx));
+ 
+                sbDestBranchBase.truncateChanges(split);
+                
+                // Implement topology changes:
+                replace(destBranchBase.getParent(), destBranchBase, parent);
+                destBranchBase.setParent(parent);
+
+                if (parent.getLeft() == node)
+                    parent.setRight(destBranchBase);
+                else if (parent.getRight() == node)
+                    parent.setLeft(destBranchBase);
+                
+                recalculateLambda(sbDestBranchBase);
+                recalculateLambda(parent);
+                recalculateLambda(node);
+
+                // Ensure BEAST knows to update affected likelihoods:
+                node.makeDirty(Tree.IS_FILTHY);
+                parent.makeDirty(Tree.IS_FILTHY);
+                destBranchBase.makeDirty(Tree.IS_FILTHY);
+                return;
+        	}
 
             // Check argument validity:
             if (node.isRoot() || destBranchBase.isRoot())
@@ -150,21 +271,22 @@ public abstract class SeedbankTreeOperator extends Operator{
             
             // Determine where the split comes in the list of colour changes
             // attached to destBranchBase:
+            SeedbankNode sbDestBranchBase = (SeedbankNode)destBranchBase;
             int split;
-            for (split = 0; split < destBranchBase.getChangeCount(); split++)
-                if (destBranchBase.getChangeTime(split) > destTime)
+            for (split = 0; split < sbDestBranchBase.getChangeCount(); split++)
+                if (sbDestBranchBase.getChangeTime(split) > destTime)
                     break;
 
             // Divide colour changes between new branches:
             parent.clearChanges();
-            for (int idx = split; idx < destBranchBase.getChangeCount(); idx++)
-            	parent.addChange(destBranchBase.getChangeType(idx),
-                		destBranchBase.getChangeTime(idx));
+            for (int idx = split; idx < sbDestBranchBase.getChangeCount(); idx++)
+            	parent.addChange(sbDestBranchBase.getChangeType(idx),
+            			sbDestBranchBase.getChangeTime(idx));
 
-            destBranchBase.truncateChanges(split);
+            sbDestBranchBase.truncateChanges(split);
 
             // Set colour at split:
-            parent.setNodeType(destBranchBase.getFinalType());
+            parent.setNodeType(sbDestBranchBase.getFinalType());
 
             // Implement topology changes:
             replace(destBranchBase.getParent(), destBranchBase, parent);

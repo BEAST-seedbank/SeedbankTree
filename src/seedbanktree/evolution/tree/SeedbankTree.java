@@ -363,6 +363,11 @@ public class SeedbankTree extends Tree {
     	if (root.getLength() != 0.0 || ((SeedbankNode)root).getChangeCount() != 0)
     		return false;
     	
+//    	if (((SeedbankNode) root.getLeft()).getChangeCount() > 0 
+//    			&& ((SeedbankNode) root.getRight()).getChangeCount() > 0) {
+//    		return false;
+//    	}
+    	
         return timesAreValid(root) && typesAreValid(root);
     }
     

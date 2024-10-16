@@ -67,7 +67,7 @@ public class TypeLengthsLogger extends CalculationNode implements Loggable, Func
 
 	}
 
-	// function implementation
+	// Function implementation
 	
 	@Override
 	public int getDimension() {
@@ -83,7 +83,7 @@ public class TypeLengthsLogger extends CalculationNode implements Loggable, Func
 		else if (dim == 1)
 			return lengths[1];
 		else
-			throw new IllegalArgumentException("provided dim is " + dim + ", it should be 0 or 1");
+			throw new IllegalArgumentException("dim should be 0 or 1");
 	}
 
 }

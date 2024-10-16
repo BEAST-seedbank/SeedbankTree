@@ -60,7 +60,7 @@ public class SeedbankTreeWilsonBalding extends SeedbankTreeOperator {
         }
         newRange += destP.getHeight() - Math.max(lastTime, newMinAge);
         
-        // collect active range for sibling branch
+        // collect active range for return, which is sibling branch + parent branch
         double oldMinAge = Math.max(src.getHeight(), sibling.getHeight());
         double oldRange = 0;
         lastTime = sibling.getHeight();
@@ -72,6 +72,16 @@ public class SeedbankTreeWilsonBalding extends SeedbankTreeOperator {
         	lastTime = currTime;
         }
         oldRange += srcP.getHeight() - Math.max(lastTime, oldMinAge);
+        
+        lastTime = srcP.getHeight();
+        for (int i=0; i < srcP.getChangeCount(); i++) {
+        	double currTime = srcP.getChangeTime(i);
+        	if (srcP.getChangeType(i) == 0) {
+        		oldRange += currTime - lastTime;
+        	}
+        	lastTime = currTime;
+        }
+        oldRange += srcP.getParent().getHeight() - lastTime;
         
         if (oldRange == 0 || newRange == 0) {
             // This happens when some branch lengths are zero.
