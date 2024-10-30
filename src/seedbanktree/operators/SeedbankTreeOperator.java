@@ -21,12 +21,6 @@ public abstract class SeedbankTreeOperator extends Operator {
         final public Input<TransitionModel> transitionModelInput = 
         		new Input<>("transitionModel", "Transition model for active and dormant types", Validate.OPTIONAL);
         
-        final public Input<RealParameter> lambdasInput = 
-    			new Input<>("lambdas", "Branch dormant fraction", Validate.OPTIONAL);
-    	
-    	final public Input<IntegerParameter> etasInput = 
-    			new Input<>("etas", "Spike and slab mixture indicator", Validate.OPTIONAL);
-        
         protected SeedbankTree sbTree;
         protected TransitionModel transitionModel;
         
@@ -70,36 +64,6 @@ public abstract class SeedbankTreeOperator extends Operator {
         }
         
         /* **********************************************************************/
-        
-        /**
-         * Derive the mixture indicator and dormancy percentage for a node and 
-         * update the corresponding parameters.
-         *
-         * @param node
-         */
-        public void recalculateLambda(Node node) {
-        	if (lambdasInput.get() == null || etasInput.get() == null)
-        		return;
-        	
-        	SeedbankNode sbNode = (SeedbankNode) node;
-        	int nodeNr = sbNode.getNr();
-        	
-        	double dormantLength = 0;
-        	double lastHeight = sbNode.getHeight();
-        	for (int i = 0; i < sbNode.getChangeCount(); i++) {
-        		if (sbNode.getChangeType(i) == 1) {
-        			dormantLength += sbNode.getChangeTime(i) - lastHeight;
-        		}
-        		lastHeight = sbNode.getChangeTime(i);
-        	}
-        	
-        	int indicator = dormantLength == 0 ? 0 : 1;
-    		etasInput.get().setValue(nodeNr, indicator);
-    		lambdasInput.get().setValue(nodeNr, dormantLength / (sbNode.getLength()));
-        }
-        
-        
-        /* **********************************************************************/
 
         /**
          * Disconnect edge <node,node.getParent()> from the tree by joining 
@@ -110,45 +74,7 @@ public abstract class SeedbankTreeOperator extends Operator {
          * @param node
          */
         public void disconnectBranch(Node node) {
-        	if (lambdasInput.get() != null && etasInput.get() != null ) {
-        		
-        		// Check argument validity:
-                SeedbankNode parent = (SeedbankNode) node.getParent();
-                if (node.isRoot() || parent.isRoot())
-                    throw new IllegalArgumentException("Illegal argument to "
-                            + "disconnectBranch().");
-
-                SeedbankNode sister = (SeedbankNode) getOtherChild(parent, node);
-                
-                // Add colour changes originally attached to parent to those attached
-                // to node's sister:
-                for (int idx = 0; idx < (parent).getChangeCount(); idx++) {
-                    int colour = parent.getChangeType(idx);
-                    double time = parent.getChangeTime(idx);
-                    sister.addChange(colour, time);
-                }
-
-                // Implement topology change.
-                replace(parent.getParent(), parent, sister);
-                
-                recalculateLambda(sister);
-
-                // Clear colour changes from parent and self:
-                parent.clearChanges();
-                recalculateLambda(parent);
-                
-                // Clear colour changes from self:
-                ((SeedbankNode)node).clearChanges();
-                recalculateLambda(node);
-                
-                // Ensure BEAST knows to update affected likelihoods:
-                parent.makeDirty(Tree.IS_FILTHY);
-                sister.makeDirty(Tree.IS_FILTHY);
-                node.makeDirty(Tree.IS_FILTHY);
-        		
-                return;
-        	}
-
+        	
             // Check argument validity:
             SeedbankNode parent = (SeedbankNode) node.getParent();
             if (node.isRoot() || parent.isRoot())
@@ -216,52 +142,6 @@ public abstract class SeedbankTreeOperator extends Operator {
          */
         public void connectBranch(Node node,
         		Node destBranchBase, double destTime) {
-        	if (lambdasInput.get() != null && etasInput.get() != null ) {
-        		
-        		// Check argument validity:
-                if (node.isRoot() || destBranchBase.isRoot())
-                    throw new IllegalArgumentException("Illegal argument to "
-                            + "connectBranch().");
-
-                // Obtain existing parent of node and set new time:
-                SeedbankNode parent = (SeedbankNode) node.getParent();
-                parent.setHeight(destTime);
-                
-                // Determine where the split comes in the list of colour changes
-                // attached to destBranchBase:
-                SeedbankNode sbDestBranchBase = (SeedbankNode)destBranchBase;
-                int split;
-                for (split = 0; split < sbDestBranchBase.getChangeCount(); split++)
-                    if (sbDestBranchBase.getChangeTime(split) > destTime)
-                        break;
-
-                // Divide colour changes between new branches:
-                parent.clearChanges();
-                for (int idx = split; idx < sbDestBranchBase.getChangeCount(); idx++)
-                	parent.addChange(sbDestBranchBase.getChangeType(idx),
-                			sbDestBranchBase.getChangeTime(idx));
- 
-                sbDestBranchBase.truncateChanges(split);
-                
-                // Implement topology changes:
-                replace(destBranchBase.getParent(), destBranchBase, parent);
-                destBranchBase.setParent(parent);
-
-                if (parent.getLeft() == node)
-                    parent.setRight(destBranchBase);
-                else if (parent.getRight() == node)
-                    parent.setLeft(destBranchBase);
-                
-                recalculateLambda(sbDestBranchBase);
-                recalculateLambda(parent);
-                recalculateLambda(node);
-
-                // Ensure BEAST knows to update affected likelihoods:
-                node.makeDirty(Tree.IS_FILTHY);
-                parent.makeDirty(Tree.IS_FILTHY);
-                destBranchBase.makeDirty(Tree.IS_FILTHY);
-                return;
-        	}
 
             // Check argument validity:
             if (node.isRoot() || destBranchBase.isRoot())

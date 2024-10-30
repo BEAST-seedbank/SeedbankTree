@@ -33,11 +33,9 @@ public class TypedWilsonBalding extends UniformizationRetypeOperator {
         double t_destNode = destNode.getHeight();
 
         
-        // NON-ROOT MOVE
-
         double logHR = 0.0;
 
-     // Incorporate probability of current colouring.
+        // Incorporate probability of current colouring.
         logHR += getBranchTypeProb(srcNode);
 
         // Record srcNode grandmother height:

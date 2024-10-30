@@ -8,31 +8,18 @@
         <provider classname="seedbanktree.evolution.tree.SeedbankTreeFromNewick"/>
         <provider classname="seedbanktree.evolution.tree.TransitionModel"/>
         <provider classname="seedbanktree.distributions.SeedbankTreeDensity"/>
-        <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModelOld"/>
         <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModel"/>
         <provider classname="seedbanktree.inference.distribution.Bernoulli"/>
         <provider classname="seedbanktree.inference.distribution.SpikeAndSlabPrior"/>
-        <provider classname="seedbanktree.operators.DormancyMover"/>
-        <provider classname="seedbanktree.operators.LambdaScaler"/>
-        <provider classname="seedbanktree.operators.DormantBitFlip"/>
-        <provider classname="seedbanktree.operators.SeedbankTreeDormantScale"/>
-        <provider classname="seedbanktree.operators.SeedbankTreePairBirth"/>
-        <provider classname="seedbanktree.operators.SeedbankTreePairDeath"/>
+        <provider classname="seedbanktree.operators.RecolorBranch"/>
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
-        <provider classname="seedbanktree.operators.SeedbankTreeWilsonBalding"/>
         <provider classname="seedbanktree.operators.TypedWilsonBalding"/>
         <provider classname="seedbanktree.operators.TypedSubtreeExchange"/>
         <provider classname="seedbanktree.operators.NodeShiftRetype"/>
-        <provider classname="seedbanktree.operators.UniformNode"/>
-        <provider classname="seedbanktree.operators.GridSearch"/>
-        <provider classname="seedbanktree.util.MAPTreeLogger"/>
-        <provider classname="seedbanktree.util.TypeLengthsLogger"/>
         <provider classname="seedbanktree.util.DormantPercentage"/>
-        <provider classname="seedbanktree.util.TypeChangeCountsLogger"/>
         <provider classname="seedbanktree.util.NodeTypeCountsLogger"/>
-        <provider classname="seedbanktree.util.RateIndicatorLogger"/>
-        <provider classname="seedbanktree.util.LambdaIndicatorLogger"/>
-        <provider classname="seedbanktree.util.IndicatorLogger"/>
+        <provider classname="seedbanktree.util.TypeChangeCountsLogger"/>
+        <provider classname="seedbanktree.util.TypeLengthsLogger"/>
     </service>
 	
 </package>

@@ -75,9 +75,6 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
 			return Double.NEGATIVE_INFINITY;
 		}
         
-        recalculateLambda(root.getLeft());
-        recalculateLambda(root.getRight());
-        
         return logHR;
     }
     
