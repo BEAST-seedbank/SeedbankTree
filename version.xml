@@ -9,8 +9,6 @@
         <provider classname="seedbanktree.evolution.tree.TransitionModel"/>
         <provider classname="seedbanktree.distributions.SeedbankTreeDensity"/>
         <provider classname="seedbanktree.evolution.branchratemodel.SeedbankClockModel"/>
-        <provider classname="seedbanktree.inference.distribution.Bernoulli"/>
-        <provider classname="seedbanktree.inference.distribution.SpikeAndSlabPrior"/>
         <provider classname="seedbanktree.operators.RecolorBranch"/>
         <provider classname="seedbanktree.operators.SeedbankTreeScale"/>
         <provider classname="seedbanktree.operators.TypedWilsonBalding"/>
