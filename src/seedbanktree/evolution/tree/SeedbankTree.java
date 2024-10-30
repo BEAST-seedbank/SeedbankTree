@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import beast.base.core.Description;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
@@ -13,19 +14,18 @@ import beast.base.evolution.tree.Tree;
 import beast.base.inference.StateNode;
 import beast.base.inference.StateNodeInitialiser;
 
-
+@Description("A seedbank tree.")
 public class SeedbankTree extends Tree {
 	
 	// Inputs
-	public Input<String> typeLabelInput = new Input<>("typeLabel", "Label for type traits (default 'type')", "type");
-	
-//    public Input<TraitSet> typeTraitInput = new Input<>("typeTrait", "Type trait set.  Used only by BEAUti.");
+	public Input<String> typeLabelInput = 
+			new Input<>("typeLabel", "Label for type traits (default 'type')", "type", Validate.OPTIONAL);
+	    
+    public Input<String> activeTypeNameInput = 
+    		new Input<>("activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
     
-    public Input<String> activeTypeNameInput = new Input<>(
-            "activeTypeName", "Name of active type.", "active", Validate.OPTIONAL);
-    
-    public Input<String> dormantTypeNameInput = new Input<>(
-            "dormantTypeName", "Name of dormant type.", "dormant", Validate.OPTIONAL);
+    public Input<String> dormantTypeNameInput = 
+    		new Input<>("dormantTypeName", "Name of dormant type.", "dormant", Validate.OPTIONAL);
 
     
 	// Shadow inputs
@@ -91,14 +91,13 @@ public class SeedbankTree extends Tree {
         
         processTraits(m_traitList.get());
         
-     // Ensure tree is compatible with traits.
+        // Ensure tree is compatible with traits.
         if (hasDateTrait())
             adjustTreeNodeHeights(root);
 	}
 	
 	@Override
 	public void makeCaterpillar(final double minInternalHeight, final double step, final boolean finalize) {
-        // make a caterpillar
         final List<String> taxa = m_taxonset.get().asStringList();
         Node left = new SeedbankNode();
         left.setNr(0);
@@ -132,7 +131,7 @@ public class SeedbankTree extends Tree {
     protected void processTraits(List<TraitSet> traitList) {
         super.processTraits(traitList);
         
-        // Only one way to get typeTraitSet at the moment
+        // Only one way to get typeTraitSet at the moment.
         // Record trait set associated with leaf types.
         for (TraitSet traitSet : traitList) {
             if (traitSet.getTraitName().equals(typeLabel)) {
@@ -356,17 +355,12 @@ public class SeedbankTree extends Tree {
     /**
      * Check whether typing and timing of tree are sensible.
      * 
-     * @return true if types and times are "valid"
+     * @return true if types and times are valid
      */
     public boolean isValid() {
     	// check root
     	if (root.getLength() != 0.0 || ((SeedbankNode)root).getChangeCount() != 0)
     		return false;
-    	
-//    	if (((SeedbankNode) root.getLeft()).getChangeCount() > 0 
-//    			&& ((SeedbankNode) root.getRight()).getChangeCount() > 0) {
-//    		return false;
-//    	}
     	
         return timesAreValid(root) && typesAreValid(root);
     }
@@ -839,7 +833,7 @@ public class SeedbankTree extends Tree {
      * Helper function for testing
      */
     public void describeSelf() {
-    	System.out.println("DESCRIBING SELF");
+    	System.out.println("--running describeSelf()--");
     	System.out.println("I am tree " + this.getID());
     	System.out.println(String.format("TypeLabel %s activeTN %s dormantTN %s", typeLabel, activeTypeName, dormantTypeName));
     	System.out.println("traitsProcessed: " + traitsProcessed + " hasTypeTrait(): " + hasTypeTrait());

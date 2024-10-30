@@ -6,39 +6,32 @@ import java.util.List;
 import org.jblas.DoubleMatrix;
 import org.jblas.MatrixFunctions;
 
-import beast.base.core.BEASTInterface;
+import beast.base.core.Description;
 import beast.base.core.Function;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.inference.CalculationNode;
 import beast.base.inference.parameter.RealParameter;
 
+@Description("A model for active to dormant and dormant to active transitions.")
 public class TransitionModel extends CalculationNode {
 	
 	// Inputs
-	// seedbank intensity / rate / c
-	public Input<Function> transitionRateInput = new Input<> (
-			"transitionRate", 
-			"Transition rate (c).", 
-			Validate.REQUIRED); 
+	public Input<Function> cInput = 
+			new Input<> ("c", "Active to dormant transition rate.", Validate.REQUIRED); 
 
-	// relative seedbank population size K
 	// Active pop = K * Dormant pop
-	public Input<Function> relativeSeedbankSizeInput = new Input<> (
-			"relativeSeedbankSize", 
-			"Relative seedbank population size, or the ratio of active to dormant population (K).", 
-			Validate.REQUIRED); 
+	public Input<Function> KInput = 
+			new Input<> ("K", "Relative seedbank population size, "
+					+ "or the ratio of active to dormant population.", Validate.REQUIRED); 
 	
-	// Active population size
-    public Input<Function> activePopSizeInput = new Input<>(
-            "activePopSize",
-            "Active population size (N).",
-            Validate.REQUIRED);
+    public Input<Function> thetaInput = new Input<>(
+            "theta", "Scaled active effective population size.", Validate.REQUIRED);
 	
     // Shadow inputs
-    protected Function transitionRate;
-    protected Function relativeSeedbankSize;
-    protected Function activePopSize;
+    protected Function c;
+    protected Function K;
+    protected Function theta;
     
     protected double mu;
     protected DoubleMatrix Q, R;
@@ -53,19 +46,18 @@ public class TransitionModel extends CalculationNode {
     public void initAndValidate() {
     	RpowN = new ArrayList<>();
     	
-    	transitionRate = transitionRateInput.get();
-    	relativeSeedbankSize = relativeSeedbankSizeInput.get();
-    	activePopSize = activePopSizeInput.get();
+    	c = cInput.get();
+    	K = KInput.get();
+    	theta = thetaInput.get();
 
-        if (transitionRate instanceof RealParameter) {
-        	((RealParameter)transitionRate).setLower(Math.max(((RealParameter)transitionRate).getLower(), 0.0));
-        }
+        if (c instanceof RealParameter)
+        	((RealParameter)c).setLower(Math.max(((RealParameter)c).getLower(), 0.0));
             
-        if (relativeSeedbankSize instanceof RealParameter)
-        	((RealParameter)relativeSeedbankSize).setLower(Math.max(((RealParameter)relativeSeedbankSize).getLower(), 0.0));
+        if (K instanceof RealParameter)
+        	((RealParameter)K).setLower(Math.max(((RealParameter)K).getLower(), 0.0));
 
-        if (activePopSize instanceof RealParameter)
-            ((RealParameter)activePopSize).setLower(Math.max(((RealParameter)activePopSize).getLower(), 0.0));
+        if (theta instanceof RealParameter)
+            ((RealParameter)theta).setLower(Math.max(((RealParameter)theta).getLower(), 0.0));
         
         dirty = true;
         updateMatrices();
@@ -118,7 +110,7 @@ public class TransitionModel extends CalculationNode {
     }
     
     /**
-     * Returns rate of migration
+     * Get transition rates.
      *
      * @param i, from type
      * @param j, to type
@@ -128,28 +120,28 @@ public class TransitionModel extends CalculationNode {
         if ( i == j ) {
             return 0;
         } else if ( i == 1 && j == 0) {
-        	return transitionRate.getArrayValue();
+        	return c.getArrayValue();
         } else { //( i == 0 && j == 1 )
-        	return transitionRate.getArrayValue() * relativeSeedbankSize.getArrayValue();
+        	return c.getArrayValue() * K.getArrayValue();
         } 
     }
     
     /**
-     * Obtain effective population size of particular type/deme.
+     * Get scaled effective population size.
      *
      * @param i deme index
      * @return Effective population size.
      */
     public double getPopSize(int i) {
         if (i == 1) {
-        	return activePopSize.getArrayValue();
+        	return theta.getArrayValue();
         } else { // i == 0
-        	return activePopSize.getArrayValue() / relativeSeedbankSize.getArrayValue();
+        	return theta.getArrayValue() / K.getArrayValue();
         }
     }
     
     public double getK() {
-    	return relativeSeedbankSize.getArrayValue();
+    	return K.getArrayValue();
     }
     
 
@@ -224,26 +216,6 @@ public class TransitionModel extends CalculationNode {
     }
     
     /**
-     * @return a list of the unique identifiers for the parameters describing this transition model
-     */
-    public List<String> getParameterIds() {
-    	// TODO: implement this for SeedbankTreeDensity getConditions();
-    	// Code referenced beast.base.evolution.tree.coalescent.ConstantPopulation
-    	List<String> ids = new ArrayList<>();
-    	
-    	if (transitionRateInput.get() instanceof BEASTInterface)
-            ids.add(((BEASTInterface)transitionRateInput.get()).getID());
-    	
-    	if (relativeSeedbankSizeInput.get() instanceof BEASTInterface)
-            ids.add(((BEASTInterface)relativeSeedbankSizeInput.get()).getID());
-    	
-    	if (activePopSizeInput.get() instanceof BEASTInterface)
-            ids.add(((BEASTInterface)activePopSizeInput.get()).getID());
-    	
-        return ids;
-    }
-    
-    /**
      * Main for debugging.
      *
      * @param args
@@ -257,8 +229,6 @@ public class TransitionModel extends CalculationNode {
                 Q.put(i, j, i*n+j);
             }
         }
-        MatrixFunctions.expm(Q.mul(0.001)).print();
-        Q.print();
         
     }
 }

@@ -3,8 +3,10 @@ package seedbanktree.evolution.tree;
 import java.util.ArrayList;
 import java.util.List;
 
+import beast.base.core.Description;
 import beast.base.evolution.tree.Node;
 
+@Description("A node in a seedbank tree.")
 public class SeedbankNode extends Node {
 	
 	// Total number of changes on the branch above this node

@@ -9,8 +9,8 @@ import seedbanktree.evolution.tree.SeedbankTree;
 
 public class SeedbankTreeScale extends SeedbankTreeOperator {
 
-    final public Input<Double> scaleFactorInput = new Input<>("scaleFactor",
-    		"Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
+    final public Input<Double> scaleFactorInput = 
+    		new Input<>("scaleFactor", "Scaling is restricted to the range [1/scaleFactor, scaleFactor]");
 
 	@Override
 	public double proposal() {

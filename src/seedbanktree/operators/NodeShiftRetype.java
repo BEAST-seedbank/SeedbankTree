@@ -1,20 +1,22 @@
 package seedbanktree.operators;
 
+import beast.base.core.Description;
 import beast.base.core.Input;
 import beast.base.evolution.tree.Node;
 import beast.base.util.Randomizer;
-import seedbanktree.evolution.tree.SeedbankNode;
 
+@Description("Selects a new position for a random node in the tree and "
+		+ "recolors all attached branches to that node.")
 public class NodeShiftRetype extends UniformizationRetypeOperator {
     
-    public Input<Boolean> rootOnlyInput = new Input<>("rootOnly",
-            "Always select root node for height adjustment.", false);
+    public Input<Boolean> rootOnlyInput = 
+    		new Input<>("rootOnly", "Always select root node for height adjustment.", false);
     
-    public Input<Boolean> noRootInput = new Input<>("noRoot",
-            "Never select root node for height adjustment.", false);
+    public Input<Boolean> noRootInput = 
+    		new Input<>("noRoot", "Never select root node for height adjustment.", false);
     
-    public Input<Double> rootScaleFactorInput = new Input<>("rootScaleFactor",
-            "Scale factor used in root height proposals. (Default 0.8)", 0.8);
+    public Input<Double> rootScaleFactorInput = 
+    		new Input<>("rootScaleFactor", "Scale factor used in root height proposals. (Default 0.8)", 0.8);
     
     @Override
     public void initAndValidate() {
@@ -37,7 +39,6 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
                         + Randomizer.nextInt(sbTree.getInternalNodeCount()));
             } while (noRootInput.get() && node.isRoot());
         
-//        manualLog("singledormancy/manualLogging.txt", "" + node.getNr());
         // Generate relevant proposal:
         if (node.isRoot())
             return rootProposal(node);
@@ -67,8 +68,12 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
         root.setHeight(oldestChildHeight + f*(root.getHeight()-oldestChildHeight));
         logHR -= Math.log(f);
         
-        logHR -= retypeBranch(root.getLeft())
-		        + retypeBranch(root.getRight());
+        try {
+			logHR -= retypeBranch(root.getLeft())
+			        + retypeBranch(root.getRight());
+		} catch (NoValidPathException e) {
+			return Double.NEGATIVE_INFINITY;
+		}
         
         recalculateLambda(root.getLeft());
         recalculateLambda(root.getRight());
@@ -97,9 +102,13 @@ public class NodeShiftRetype extends UniformizationRetypeOperator {
                 node.getRight().getHeight());
         node.setHeight(lowerBound+(upperBound-lowerBound)*Randomizer.nextDouble());
         
-        logHR -= retypeBranch(node)
-		        + retypeBranch(node.getLeft())
-		        + retypeBranch(node.getRight());
+        try {
+			logHR -= retypeBranch(node)
+			        + retypeBranch(node.getLeft())
+			        + retypeBranch(node.getRight());
+		} catch (NoValidPathException e) {
+			return Double.NEGATIVE_INFINITY;
+		}
         
         return logHR;        
     }

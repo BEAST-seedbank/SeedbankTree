@@ -32,7 +32,7 @@ public class LambdaScalerOld extends UniformizationRetypeOperator {
         upper = scaleUpperLimit.get();
         lower = scaleLowerLimit.get();
 
-        final int indsDim = InputUtil.get(indicatorsInput, this).getDimension();
+        final int indsDim = InputUtil.get(etasInput, this).getDimension();
         final int lambdasDim = InputUtil.get(lambdasInput, this).getDimension();
         if (!(indsDim == lambdasDim)) {
             throw new IllegalArgumentException("indicators dimension not compatible with lambdas dimension");
@@ -67,7 +67,7 @@ public class LambdaScalerOld extends UniformizationRetypeOperator {
 
             // which position to scale
             final int index;
-            final IntegerParameter indicators = (IntegerParameter) InputUtil.get(indicatorsInput, this);
+            final IntegerParameter indicators = (IntegerParameter) InputUtil.get(etasInput, this);
             final int dimCount = indicators.getDimension();
             final Integer[] indicator = indicators.getValues();
 

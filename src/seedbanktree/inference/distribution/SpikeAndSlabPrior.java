@@ -7,7 +7,6 @@ import org.apache.commons.math.distribution.ContinuousDistribution;
 import beast.base.core.Function;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
-import beast.base.evolution.branchratemodel.BranchRateModel;
 import beast.base.inference.distribution.Prior;
 import beast.base.inference.parameter.IntegerParameter;
 import beast.base.inference.parameter.RealParameter;
@@ -18,11 +17,10 @@ public class SpikeAndSlabPrior extends Prior {
 	final public Input<Function> spikeLocInput = new Input<>("spike", "spike location, defaults to 0");
     final public Input<ContinuousDistribution> slabDistInput = 
     		new Input<>("slab", "the distribution that comprises the slab", Validate.REQUIRED); 
-	final public Input<Function> gammaInput = new Input<>("gamma", "mixture weight", Validate.REQUIRED);
+	final public Input<Function> etasInput = new Input<>("etas", "mixture weight", Validate.REQUIRED);
 	
 	protected SpikeAndSlabImpl spikeAndSlab = new SpikeAndSlabImpl(0.0);
 	
-	// SpikeAndSlabPrior no longer takes in an arbitrary dist (as opposed to Prior)
 	public SpikeAndSlabPrior() {
 		distInput.setRule(Validate.FORBIDDEN);
 	}
@@ -34,8 +32,8 @@ public class SpikeAndSlabPrior extends Prior {
 		}
 		spikeAndSlab.setSlab(slabDistInput.get());
 		
-        if (m_x.get().getDimension() != gammaInput.get().getDimension()) {
-            throw new IllegalArgumentException(String.format("Dimension of m_x (%d) and gamma (%d) must match.", m_x.get().getDimension(), gammaInput.get().getDimension()));
+        if (m_x.get().getDimension() != etasInput.get().getDimension()) {
+            throw new IllegalArgumentException(String.format("Dimension of m_x (%d) and gamma (%d) must match.", m_x.get().getDimension(), etasInput.get().getDimension()));
         }
         
         calculateLogP();
@@ -44,7 +42,7 @@ public class SpikeAndSlabPrior extends Prior {
 	@Override
     public double calculateLogP() {
         Function x = m_x.get();
-        Function gamma = gammaInput.get();
+        Function gamma = etasInput.get();
         if (x instanceof RealParameter || x instanceof IntegerParameter) {
             // test that parameter is inside its bounds
             double l = 0.0;
@@ -56,11 +54,6 @@ public class SpikeAndSlabPrior extends Prior {
                 l = ((IntegerParameter) x).getLower();
                 h = ((IntegerParameter) x).getUpper();
             }
-//            for (int i = 0; i < x.getDimension(); i++) {
-//                double value = x.getArrayValue(i);
-//                System.out.print(value + " ");
-//            }
-//            System.out.println("");
             
             for (int i = 0; i < x.getDimension(); i++) {
                 double value = x.getArrayValue(i);
@@ -70,7 +63,6 @@ public class SpikeAndSlabPrior extends Prior {
                     return Double.NEGATIVE_INFINITY;
                 }
             }
-//            System.out.println("");
         }
         logP = 0;
         for (int i = 0; i < x.getDimension(); i++) {
@@ -81,9 +73,7 @@ public class SpikeAndSlabPrior extends Prior {
         if (logP == Double.POSITIVE_INFINITY) {
             logP = Double.NEGATIVE_INFINITY;
         }
-//        System.out.println(x);
-//        System.out.println(gamma);
-//        System.out.println(logP);
+        
         return logP;
     }
 	
@@ -103,42 +93,44 @@ public class SpikeAndSlabPrior extends Prior {
         	this.slab = slab;
         }
         
-		public double cumulativeProbability(double x, int gamma) throws MathException {
-			// gamma is either 0 or 1
-			assert gamma == 0 || gamma == 1;
+		public double cumulativeProbability(double x, int eta) throws MathException {
+			if (eta!= 0 && eta != 1 )
+				throw MathRuntimeException.createIllegalArgumentException("eta can only be 0 or 1");
 			
-			if (gamma == 1) {
+			if (eta == 1) {
 				return slab.cumulativeProbability(x);
 			} else {
 				return x >= spike ? 1 : 0;
 			}
 		}
 
-		public double cumulativeProbability(double x0, double x1, int gamma) throws MathException {
+		public double cumulativeProbability(double x0, double x1, int eta) throws MathException {
 	        if (x0 > x1) {
 	            throw MathRuntimeException.createIllegalArgumentException(
                     "lower endpoint ({0}) must be less than or equal to upper endpoint ({1})",
                     x0, x1);
 	        }
-	        return cumulativeProbability(x1, gamma) - cumulativeProbability(x0, gamma);
+	        return cumulativeProbability(x1, eta) - cumulativeProbability(x0, eta);
 	    }
 
-		public double density(double x, int gamma) {
-			// gamma is either 0 or 1
-			assert gamma == 0 || gamma == 1;
+		public double density(double x, int eta) {
+			if (eta!= 0 && eta != 1 )
+				throw MathRuntimeException.createIllegalArgumentException("eta can only be 0 or 1");
 			
-			if (gamma == 1) {
+			assert eta == 0 || eta == 1;
+			
+			if (eta == 1) {
 				return slab.density(x);
 			} else {
 				return x == spike ? 1 : 0;
 			}
 		}
 
-		public double logDensity(double x, int gamma) {
-			// gamma is either 0 or 1
-			assert gamma == 0 || gamma == 1;
+		public double logDensity(double x, int eta) {
+			if (eta!= 0 && eta != 1 )
+				throw MathRuntimeException.createIllegalArgumentException("eta can only be 0 or 1");
 			
-			if (gamma == 1) {
+			if (eta == 1) {
 				return slab.logDensity(x);
 			} else {
 				return x == spike ? 0 : Double.NEGATIVE_INFINITY;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import beast.base.core.Description;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
@@ -13,11 +14,17 @@ import beast.base.inference.parameter.IntegerParameter;
 import beast.base.inference.parameter.RealParameter;
 import beast.base.util.Randomizer;
 
+@Description("Class to initialize a SeedbankTree by randomly simulating a seedbank genealogy "
+		+ "starting from the leaves.")
 public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeInitialiser {
-	public Input<RealParameter> lambdasInput = new Input<> ("lambdas", "");
-    public Input<IntegerParameter> indicatorsInput = new Input<> ("indicators", "");
-    
-	public Input<TransitionModel> transitionModelInput = new Input<>("transitionModel", "transition model to use in simulator.", Validate.REQUIRED);
+	public Input<TransitionModel> transitionModelInput = 
+			new Input<>("transitionModel", "transition model to use in simulator.", Validate.REQUIRED);
+	
+	public Input<RealParameter> lambdasInput = 
+			new Input<>("lambdas", "Branch dormant fraction", Validate.OPTIONAL);
+	
+	public Input<IntegerParameter> etasInput = 
+			new Input<>("etas", "Spike and slab mixture indicator", Validate.OPTIONAL);
 	
 	private TransitionModel transitionModel;
     
@@ -120,19 +127,19 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         int nextNodeNr = 0;
 
         // Initialise node lists:
-        List<List<SeedbankNode>> liveNodes = new ArrayList<>();
-        List<List<SeedbankNode>> deadNodes = new ArrayList<>();
-        liveNodes.add(new ArrayList<>());
-        liveNodes.add(new ArrayList<>());
-        deadNodes.add(new ArrayList<>());
-        deadNodes.add(new ArrayList<>());
+        List<List<SeedbankNode>> liveLineages = new ArrayList<>();
+        List<List<SeedbankNode>> waitingSamples = new ArrayList<>();
+        liveLineages.add(new ArrayList<>());
+        liveLineages.add(new ArrayList<>());
+        waitingSamples.add(new ArrayList<>());
+        waitingSamples.add(new ArrayList<>());
 
-        // Add nodes to dead nodes list:
+        // Add samples to waitingSamples:
         for (int l = 0; l < nLeaves; l++) {
             SeedbankNode node = new SeedbankNode();
             node.setNr(nextNodeNr);
             node.setID(leafNames.get(l));
-            deadNodes.get(leafTypes.get(l)).add(node);
+            waitingSamples.get(leafTypes.get(l)).add(node);
             node.setHeight(leafTimes.get(l));
             node.setNodeType(leafTypes.get(l));
 
@@ -141,7 +148,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         
         // Sort nodes in dead nodes lists in order of increasing age:
         for (int i=0; i<2; i++) {
-            Collections.sort(deadNodes.get(i),
+            Collections.sort(waitingSamples.get(i),
                 (SeedbankNode node1, SeedbankNode node2) -> {
                     double dt = node1.getHeight()-node2.getHeight();
                     if (dt<0)
@@ -161,12 +168,12 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         coalesceProp.add(0.0);
         double t = 0.0;
         
-        while (totalNodesRemaining(liveNodes)>1
-                || totalNodesRemaining(deadNodes)>0) {
+        while (totalNodesRemaining(liveLineages)>1
+                || totalNodesRemaining(waitingSamples)>0) {
 
             // Step 1: Calculate propensities.
             double totalProp = updatePropensities(migrationProp, coalesceProp,
-                    liveNodes);
+                    liveLineages);
             
             // Step 2: Determine next event.
             SBEvent event = getNextEvent(migrationProp, coalesceProp,
@@ -176,33 +183,32 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
             SeedbankNode nextNode = null;
             int nextNodeType = -1;
             double nextTime = Double.POSITIVE_INFINITY;
-//            for (int i=0; i<migModel.getNTypes(); i++) {
             for (int i=0; i<2; i++) {
-                if (deadNodes.get(i).isEmpty())
+                if (waitingSamples.get(i).isEmpty())
                     continue;
                 
-                if (deadNodes.get(i).get(0).getHeight()<nextTime) {
-                    nextNode = deadNodes.get(i).get(0);
+                if (waitingSamples.get(i).get(0).getHeight()<nextTime) {
+                    nextNode = waitingSamples.get(i).get(0);
                     nextTime = nextNode.getHeight();
                     nextNodeType = i;
                 }
             }
             if (nextTime < event.time) {
                 t = nextTime;
-                liveNodes.get(nextNodeType).add(nextNode);
-                deadNodes.get(nextNodeType).remove(0);
+                liveLineages.get(nextNodeType).add(nextNode);
+                waitingSamples.get(nextNodeType).remove(0);
                 continue;
             }
             
             // Step 4: Place event on tree.
-            nextNodeNr = updateTree(liveNodes, event, nextNodeNr);
+            nextNodeNr = updateTree(liveLineages, event, nextNodeNr);
 
             // Step 5: Keep track of time increment.
             t = event.time;
         }
         
         // Return sole remaining live node as root:
-        for (List<SeedbankNode> nodeList : liveNodes)
+        for (List<SeedbankNode> nodeList : liveLineages)
             if (!nodeList.isEmpty()) {
             	((SeedbankNode) nodeList.get(0).getLeft()).clearChanges();
             	return nodeList.get(0);
@@ -227,13 +233,13 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
 
         double totalProp = 0.0;
         
-        double N_a = transitionModel.getPopSize(1);
+        double theta = transitionModel.getPopSize(1);
         int k_a = liveNodes.get(1).size();
         int k_d = liveNodes.get(0).size();
         double m_ad = transitionModel.getBackwardRate(1, 0);
         double m_da = transitionModel.getBackwardRate(0, 1);
         
-        coalesceProp.set(0, k_a * (k_a - 1) / (2.0 * N_a));
+        coalesceProp.set(0, k_a * (k_a - 1) / (2.0 * theta));
         coalesceProp.set(0, k_a * (k_a - 1) / (2.0 * 1));
         totalProp += coalesceProp.get(0);
         
@@ -297,19 +303,19 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
     /**
     * Update tree with result of latest event.
     *
-    * @param liveNodes
+    * @param liveLineages
     * @param event
     * @param nextNodeNr Integer identifier of last node added to tree.
     * @return Updated nextNodeNr.
     */
-   private int updateTree(List<List<SeedbankNode>> liveNodes, SBEvent event,
+   private int updateTree(List<List<SeedbankNode>> liveLineages, SBEvent event,
            int nextNodeNr) {
 
        if (event instanceof CoalescenceEvent) {
 
            // Randomly select node pair from active nodes:
-    	   SeedbankNode daughter = selectRandomNode(liveNodes.get(1));
-    	   SeedbankNode son = selectRandomSibling(liveNodes.get(1), daughter);
+    	   SeedbankNode daughter = selectRandomNode(liveLineages.get(1));
+    	   SeedbankNode son = selectRandomSibling(liveLineages.get(1), daughter);
 
            // Create new parent node with appropriate ID and time:
     	   SeedbankNode parent = new SeedbankNode();
@@ -328,21 +334,21 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
            parent.setNodeType(event.fromType);
 
            // Update activeNodes:
-           liveNodes.get(1).remove(son);
-           int idx = liveNodes.get(1).indexOf(daughter);
-           liveNodes.get(1).set(idx, parent);
+           liveLineages.get(1).remove(son);
+           int idx = liveLineages.get(1).indexOf(daughter);
+           liveLineages.get(1).set(idx, parent);
 
-       } else { // Migration event ... what happens if Null event?
+       } else {
 
            // Randomly select node with chosen colour:
-    	   SeedbankNode migrator = selectRandomNode(liveNodes.get(event.fromType));
+    	   SeedbankNode migrator = selectRandomNode(liveLineages.get(event.fromType));
 
            // Record colour change in change lists:
            migrator.addChange(event.toType, event.time);
 
            // Update activeNodes:
-           liveNodes.get(event.fromType).remove(migrator);
-           liveNodes.get(event.toType).add(migrator);
+           liveLineages.get(event.fromType).remove(migrator);
+           liveLineages.get(event.toType).add(migrator);
 
        }
 
@@ -388,12 +394,12 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         }
     	m_initial.get().assignFromWithoutID(this);
     	
-    	if (lambdasInput.get() == null || indicatorsInput.get() == null) {
+    	if (lambdasInput.get() == null || etasInput.get() == null) {
     		return;
     	}
     				
     	RealParameter lambdas = lambdasInput.get();
-        IntegerParameter indicators = indicatorsInput.get();
+        IntegerParameter etas = etasInput.get();
         for (int i = 0; i < getNodeCount()-1; i++) {
         	SeedbankNode sbNode = (SeedbankNode)getNode(i);
         	if (sbNode.getChangeCount() != 0) {
@@ -406,7 +412,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         			lastType = sbNode.getChangeType(j);
         			lastHeight = sbNode.getChangeTime(j);
         		}
-        		indicators.setValue(i, 1);
+        		etas.setValue(i, 1);
         		lambdas.setValue(i, sum / sbNode.getLength());
         	}
         }
@@ -421,7 +427,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         }
         stateNodes.add(m_initial.get());
         stateNodes.add(lambdasInput.get());
-        stateNodes.add(indicatorsInput.get());
+        stateNodes.add(etasInput.get());
     }
 
 }

@@ -8,15 +8,20 @@ import org.jblas.MatrixFunctions;
 
 import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
-import beast.base.evolution.tree.Tree;
 import beast.base.inference.util.InputUtil;
 import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
 import seedbanktree.evolution.tree.TransitionModel;
 
 public abstract class UniformizationRetypeOperator extends SeedbankTreeOperator {
-	
-	/**
+    
+    public UniformizationRetypeOperator() {
+    	transitionModelInput.setRule(Validate.REQUIRED);
+//    	lambdasInput.setRule(Validate.REQUIRED);
+//    	indicatorsInput.setRule(Validate.REQUIRED);
+    }
+    
+    /**
      * Exception used to signal non-existence of allowed type sequence
      * between node types.
      */
@@ -25,12 +30,6 @@ public abstract class UniformizationRetypeOperator extends SeedbankTreeOperator 
         public String getMessage() {
             return "No valid valid type sequence exists between chosen nodes.";
         }
-    }
-    
-    public UniformizationRetypeOperator() {
-    	transitionModelInput.setRule(Validate.REQUIRED);
-//    	lambdasInput.setRule(Validate.REQUIRED);
-//    	indicatorsInput.setRule(Validate.REQUIRED);
     }
     
     /**
@@ -105,7 +104,7 @@ public abstract class UniformizationRetypeOperator extends SeedbankTreeOperator 
      * @return Probability of new state.
      * @throws multitypetree.operators.UniformizationRetypeOperator.NoValidPathException
      */
-    protected double retypeBranch(Node srcNode) {
+    protected double retypeBranch(Node srcNode) throws NoValidPathException {
 //    	Tree t = srcNode.getTree();
 //    	srcNode = t.getNode(287);
 //    	Node srcNodeP_ = srcNode.getParent();
@@ -200,6 +199,10 @@ public abstract class UniformizationRetypeOperator extends SeedbankTreeOperator 
         double Pba = MatrixFunctions.expm(
         		transitionModel.getQ()
                 .mul(L)).get(type_srcNode,type_srcNodeP);
+        
+        // Abort if transition is impossible.
+        if (Pba == 0.0)
+            throw new NoValidPathException();
         
         // Catch for numerical errors
         if (Pba>1.0 || Pba<0.0) {
@@ -348,7 +351,7 @@ public abstract class UniformizationRetypeOperator extends SeedbankTreeOperator 
      */
     protected double constrainedRetypeBranch(Node srcNode) {
     	//manualLog("singledormancy/manualLogging.txt", "constrainedRetypeBranch " + srcNode.getNr());
-    	assert (indicatorsInput.get().getValue(srcNode.getNr()) == 1);
+    	assert (etasInput.get().getValue(srcNode.getNr()) == 1);
     	
         Node srcNodeP = srcNode.getParent();
         double t_srcNode = srcNode.getHeight();

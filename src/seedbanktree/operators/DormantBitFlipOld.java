@@ -5,7 +5,6 @@ import beast.base.inference.parameter.RealParameter;
 import beast.base.inference.util.InputUtil;
 import beast.base.util.Randomizer;
 import seedbanktree.evolution.tree.SeedbankNode;
-import seedbanktree.evolution.tree.SeedbankTree;
 
 public class DormantBitFlipOld extends UniformizationRetypeOperator {
 	
@@ -13,7 +12,7 @@ public class DormantBitFlipOld extends UniformizationRetypeOperator {
 	public double proposal() {
 
 		final RealParameter lambdas = ((RealParameter) InputUtil.get(lambdasInput, this));
-        final IntegerParameter indicators = (IntegerParameter) InputUtil.get(indicatorsInput, this);
+        final IntegerParameter indicators = (IntegerParameter) InputUtil.get(etasInput, this);
 
         final int dim = indicators.getDimension();
 
@@ -27,7 +26,6 @@ public class DormantBitFlipOld extends UniformizationRetypeOperator {
         
         double logq = 0.0;
         if (value == 0) {
-        	//manualLog("singledormancy/manualLogging.txt", "TURN ON " + pos);
             indicators.setValue(pos, 1);
             logq = -Math.log((dim - sum) / (sum + 1));
             
@@ -35,7 +33,6 @@ public class DormantBitFlipOld extends UniformizationRetypeOperator {
             lambdas.setValue(pos, l);
             
             SeedbankNode sbNode = (SeedbankNode)sbTree.getNode(pos);
-//            sbNode = (SeedbankNode) ((SeedbankTree)InputUtil.get(seedbankTreeInput, this)).getNode(pos);
             
             double retype_logp = constrainedRetypeBranch(sbNode);
             if (retype_logp == Double.NEGATIVE_INFINITY)
@@ -43,7 +40,6 @@ public class DormantBitFlipOld extends UniformizationRetypeOperator {
             logq -= retype_logp;
             
         } else {
-        	//manualLog("singledormancy/manualLogging.txt", "TURN OFF " + pos);
         	SeedbankNode sbNode = (SeedbankNode)sbTree.getNode(pos);
         	
         	if (sbNode.getNodeType() == 0) {

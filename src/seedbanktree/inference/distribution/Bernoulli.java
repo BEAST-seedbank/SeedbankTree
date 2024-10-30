@@ -5,13 +5,15 @@ import org.apache.commons.math.MathRuntimeException;
 import org.apache.commons.math.distribution.Distribution;
 import org.apache.commons.math.distribution.IntegerDistribution;
 
+import beast.base.core.Description;
 import beast.base.core.Function;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.inference.distribution.ParametricDistribution;
 
+@Description("Bernoulli distribution.")
 public class Bernoulli extends ParametricDistribution {
-	final public Input<Function> pInput = new Input<>("p", "bernoulli success probability", Validate.REQUIRED);
+	final public Input<Function> pInput = new Input<>("p", "Bernoulli success probability", Validate.REQUIRED);
 	BernoulliImpl dist = new BernoulliImpl();
 
     @Override

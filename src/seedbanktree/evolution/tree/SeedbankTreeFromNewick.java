@@ -12,20 +12,23 @@ import beast.base.inference.StateNodeInitialiser;
 import beast.base.inference.parameter.IntegerParameter;
 import beast.base.inference.parameter.RealParameter;
 
-@Description("Class to initialize a SeedbankTree from single child newick tree with type metadata")
+@Description("Class to initialize a SeedbankTree from single child newick tree with type metadata.")
 public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeInitialiser {
 
-	public Input<String> newickStringInput = new Input<>("value",
-            "Tree in Newick format.", Validate.REQUIRED);
+	public Input<String> newickStringInput = 
+			new Input<>("value", "Tree in Newick format.", Validate.REQUIRED);
 
-    public Input<Boolean> adjustTipHeightsInput = new Input<>("adjustTipHeights",
-            "Adjust tip heights in tree? (Default false).", false);
+    public Input<Boolean> adjustTipHeightsInput = 
+    		new Input<>("adjustTipHeights", "Adjust tip heights in tree? (Default false).", false);
     
-    public Input <Alignment> dataInput = new Input<> ("data", 
-    		"Specifies the sequences represented by the leaves in the tree.");
-    
-    public Input<RealParameter> lambdasInput = new Input<> ("lambdas", "");
-    public Input<IntegerParameter> indicatorsInput = new Input<> ("indicators", "");
+    public Input <Alignment> dataInput = 
+    		new Input<> ("data", "Specifies the sequences represented by the leaves in the tree.");
+        
+    public Input<RealParameter> lambdasInput = 
+			new Input<>("lambdas", "Branch dormant fraction", Validate.OPTIONAL);
+	
+	public Input<IntegerParameter> etasInput = 
+			new Input<>("etas", "Spike and slab mixture indicator", Validate.OPTIONAL);
     
     
 	public SeedbankTreeFromNewick() {
@@ -64,12 +67,12 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
         }
     	m_initial.get().assignFromWithoutID(this);
     	
-    	if (lambdasInput.get() == null || indicatorsInput.get() == null) {
+    	if (lambdasInput.get() == null || etasInput.get() == null) {
     		return;
     	}
     				
     	RealParameter lambdas = lambdasInput.get();
-        IntegerParameter indicators = indicatorsInput.get();
+        IntegerParameter etas = etasInput.get();
         for (int i = 0; i < getNodeCount()-1; i++) {
         	SeedbankNode sbNode = (SeedbankNode)getNode(i);
         	if (sbNode.getChangeCount() != 0) {
@@ -82,7 +85,7 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
         			lastType = sbNode.getChangeType(j);
         			lastHeight = sbNode.getChangeTime(j);
         		}
-        		indicators.setValue(i, 1);
+        		etas.setValue(i, 1);
         		lambdas.setValue(i, sum / sbNode.getLength());
         	}
         }
@@ -97,7 +100,7 @@ public class SeedbankTreeFromNewick extends SeedbankTree implements StateNodeIni
         }
         stateNodes.add(m_initial.get());
         stateNodes.add(lambdasInput.get());
-        stateNodes.add(indicatorsInput.get());
+        stateNodes.add(etasInput.get());
     }
 
 }

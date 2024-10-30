@@ -1,5 +1,6 @@
 package seedbanktree.operators;
 
+import beast.base.core.Description;
 import beast.base.core.Input;
 import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
@@ -11,21 +12,20 @@ import seedbanktree.evolution.tree.SeedbankTree;
 import seedbanktree.evolution.tree.TransitionModel;
 import seedbanktree.evolution.tree.SeedbankNode;
 
+@Description("This operator generates proposals for a seedbank tree")
 public abstract class SeedbankTreeOperator extends Operator {
 	
-	    final public Input<SeedbankTree> seedbankTreeInput = new Input<>(
-            "sbTree", "Seedbank tree on which to operate.",
-            Validate.REQUIRED);
+	    final public Input<SeedbankTree> seedbankTreeInput = 
+	    		new Input<>("sbTree", "Seedbank tree on which to operate.", Validate.REQUIRED);
             
-        final public Input<TransitionModel> transitionModelInput = new Input<>(
-            "transitionModel",
-            "Transition model for proposal distribution",
-            Validate.OPTIONAL);
+        final public Input<TransitionModel> transitionModelInput = 
+        		new Input<>("transitionModel", "Transition model for active and dormant types", Validate.OPTIONAL);
         
-        final public Input<RealParameter> lambdasInput = new Input<>(
-        		"lambdas", "Branch dormant fraction", Validate.OPTIONAL);
-    	final public Input<IntegerParameter> indicatorsInput = new Input<>(
-    			"indicators", "Dormancy indicators", Validate.OPTIONAL);;
+        final public Input<RealParameter> lambdasInput = 
+    			new Input<>("lambdas", "Branch dormant fraction", Validate.OPTIONAL);
+    	
+    	final public Input<IntegerParameter> etasInput = 
+    			new Input<>("etas", "Spike and slab mixture indicator", Validate.OPTIONAL);
         
         protected SeedbankTree sbTree;
         protected TransitionModel transitionModel;
@@ -71,8 +71,14 @@ public abstract class SeedbankTreeOperator extends Operator {
         
         /* **********************************************************************/
         
+        /**
+         * Derive the mixture indicator and dormancy percentage for a node and 
+         * update the corresponding parameters.
+         *
+         * @param node
+         */
         public void recalculateLambda(Node node) {
-        	if (lambdasInput.get() == null || indicatorsInput.get() == null)
+        	if (lambdasInput.get() == null || etasInput.get() == null)
         		return;
         	
         	SeedbankNode sbNode = (SeedbankNode) node;
@@ -88,7 +94,7 @@ public abstract class SeedbankTreeOperator extends Operator {
         	}
         	
         	int indicator = dormantLength == 0 ? 0 : 1;
-    		indicatorsInput.get().setValue(nodeNr, indicator);
+    		etasInput.get().setValue(nodeNr, indicator);
     		lambdasInput.get().setValue(nodeNr, dormantLength / (sbNode.getLength()));
         }
         
@@ -104,7 +110,7 @@ public abstract class SeedbankTreeOperator extends Operator {
          * @param node
          */
         public void disconnectBranch(Node node) {
-        	if (lambdasInput.get() != null && indicatorsInput.get() != null ) {
+        	if (lambdasInput.get() != null && etasInput.get() != null ) {
         		
         		// Check argument validity:
                 SeedbankNode parent = (SeedbankNode) node.getParent();
@@ -173,10 +179,7 @@ public abstract class SeedbankTreeOperator extends Operator {
 
         /**
          * Disconnect node from root, discarding all colouring on <node,root> and
-         * <node's sister,root>.
-         * 
-         * Jack's note: Doesn't seem to actually disconnect node from root, but moreso
-         * disconnect node's sister only.
+         * <node's sister,root>. The node's sister is made the new root.
          *
          * @param node
          */
@@ -213,7 +216,7 @@ public abstract class SeedbankTreeOperator extends Operator {
          */
         public void connectBranch(Node node,
         		Node destBranchBase, double destTime) {
-        	if (lambdasInput.get() != null && indicatorsInput.get() != null ) {
+        	if (lambdasInput.get() != null && etasInput.get() != null ) {
         		
         		// Check argument validity:
                 if (node.isRoot() || destBranchBase.isRoot())

@@ -1,9 +1,12 @@
 package seedbanktree.operators;
 
+import beast.base.core.Description;
 import beast.base.core.Input;
 import beast.base.evolution.tree.Node;
 import beast.base.util.Randomizer;
 
+@Description("Swaps the locations of two nodes in the seedbank tree and "
+		+ "recolors the branches between them and their parents.")
 public class TypedSubtreeExchange  extends UniformizationRetypeOperator {
     
     public Input<Boolean> isNarrowInput = new Input<Boolean>("isNarrow",
@@ -33,7 +36,6 @@ public class TypedSubtreeExchange  extends UniformizationRetypeOperator {
                 srcNode = sbTree.getNode(Randomizer.nextInt(sbTree.getNodeCount()));
             } while (srcNode.isRoot());
             srcNodeParent = srcNode.getParent();
-            
             do {
                 destNode = sbTree.getNode(Randomizer.nextInt(sbTree.getNodeCount()));
             } while(destNode == srcNode
@@ -43,19 +45,22 @@ public class TypedSubtreeExchange  extends UniformizationRetypeOperator {
         }
         
         // Reject if substitution would result in negative branch lengths:
-        if (destNode.getHeight()>srcNodeParent.getHeight()
-                || srcNode.getHeight()>destNodeParent.getHeight())
+        if (destNode.getHeight() >= srcNodeParent.getHeight()
+                || srcNode.getHeight() >= destNodeParent.getHeight())
             return Double.NEGATIVE_INFINITY;
         
         // Record probability of old colours:
         logHR += getBranchTypeProb(srcNode) + getBranchTypeProb(destNode);
-//        manualLog("singledormancy/manualLogging.txt", "" + srcNode.getNr());
-//        manualLog("singledormancy/manualLogging.txt", "" + destNode.getNr());
+
         // Make changes to tree topology:
         replace(srcNodeParent, srcNode, destNode);
         replace(destNodeParent, destNode, srcNode);
         
-        logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
+        try {
+			logHR -= retypeBranch(srcNode) + retypeBranch(destNode);
+		} catch (NoValidPathException e) {
+			return Double.NEGATIVE_INFINITY;
+		}
         
         return logHR;
     }
