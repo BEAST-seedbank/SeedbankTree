@@ -16,7 +16,7 @@ import beast.base.util.Randomizer;
 
 @Description("Class to initialize a SeedbankTree by randomly simulating a seedbank genealogy "
 		+ "starting from the leaves.")
-public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeInitialiser {
+public class SeedbankTreeInitializer extends SeedbankTree implements StateNodeInitialiser {
 	public Input<TransitionModel> transitionModelInput = 
 			new Input<>("transitionModel", "transition model to use in simulator.", Validate.REQUIRED);
 	
@@ -64,7 +64,7 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
         }
     }
     
-    public SeedbankTreeInitialiser() {
+    public SeedbankTreeInitializer() {
     	m_initial.setRule(Validate.REQUIRED);
     }
     
@@ -383,14 +383,14 @@ public class SeedbankTreeInitialiser extends SeedbankTree implements StateNodeIn
        return nodeList.get(n);
    }
     
-    // Methods for StateNodeInitialiser interface
+    // Methods for StateNodeInitializer interface
     
     @Override
     public void initStateNodes() {
         assert(m_initial != null);
         if (!(m_initial.get() instanceof SeedbankTree)) {
         	throw new IllegalArgumentException("Attempted to use "
-                    + "seedbank tree initialiser on regular tree object");
+                    + "seedbank tree initializer on regular tree object");
         }
     	m_initial.get().assignFromWithoutID(this);
     	
