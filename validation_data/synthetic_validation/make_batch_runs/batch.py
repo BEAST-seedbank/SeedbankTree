@@ -14,7 +14,7 @@ def main():
             pass
 
         os.mkdir(f"./batch_1/{i}")
-        shutil.copyfile("./shell3.xml", f"./batch_1/{i}/{i}.xml")
+        shutil.copyfile("./shell.xml", f"./batch_1/{i}/{i}.xml")
 
         with open('./simulate_tree.json') as f:
             tree_config_data = json.load(f)
@@ -59,7 +59,6 @@ def main():
         with open(f"./batch_1/{i}/{i}.xml") as f:
             newText = f.read()
             newText = newText.replace('$$$REPLACE_TARGET$$$', ''.join(seq_list))
-            newText = newText.replace('$$$REPLACE_TARGET_2$$$', newick_str.replace("&", "&amp;")+";")
 
         with open(f"./batch_1/{i}/{i}.xml", "w") as f:
             f.write(newText)
