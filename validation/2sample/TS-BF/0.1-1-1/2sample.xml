@@ -1,0 +1,136 @@
+<beast version='2.0' namespace='beast.base.evolution:beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution
+:seedbanktree.evolution.tree:seedbanktree.evolution.branchratemodel:seedbanktree.distributions:seedbanktree.inference.distribution:seedbanktree.operators:seedbanktree.util'>
+	<!-- Trait data associated with sequences -->
+	<taxa spec="TaxonSet" id="taxa">
+	    <alignment spec='Alignment'>
+	      <sequence taxon="t1" value="?"/>
+	      <sequence taxon="t2" value="?"/>
+	   	</alignment>
+  	</taxa>
+  	
+  	<typeTraitSet spec='TraitSet' id="typeTraitSet"
+		traitname="type" taxa="@taxa"
+		value='t1=active, t2=active'/>
+  
+    <timeTraitSet spec='TraitSet' id="timeTraitSet"
+		traitname="date-backward" taxa="@taxa"
+		value="t1=0, t2=0"/>
+
+	<!-- Transition model -->
+	<transitionModel spec='TransitionModel' id='transitionModel'>
+		<transitionRate spec='RealParameter' id='transitionRate' value='0.10' lower='0.0'/>
+		<relativeSeedbankSize spec='RealParameter' id='relativeSeedbankSize' value='1.0' lower='0.0'/>
+		<activePopSize spec='RealParameter' id='activePopSize' value='1.0' estimate='false'/>
+	</transitionModel>
+	
+	<!-- Branch clock model -->
+	<branchRateModel spec='SeedbankClockModel' id='branchRateModel'>
+		<alpha spec='RealParameter' id='alpha' value='0.1' lower='0.0' upper='1.0'/>
+		<lambdas spec='RealParameter' id='lambdas' dimension='2' value='0.0' lower='0.0' upper='1.0'/>
+		<indicators spec='IntegerParameter' id='indicators' dimension='2' value='0' lower='0.0' upper='1.0'/>
+		<tree idref='sbTree'/>
+	</branchRateModel>
+	
+	<!-- Priors -->
+	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity' checkValidity='true'>
+		<tree idref='sbTree'/>
+		<transitionModel idref='transitionModel'/>
+	</distribution>
+	
+	<run spec='MCMC' id='mcmc' chainLength='10000000' storeEvery='10000'>
+		<init spec='SeedbankTreeInitialiser'>
+			<transitionModel idref='transitionModel'/>
+			<initial idref='sbTree'/>
+			<trait idref='typeTraitSet'/>
+			<trait idref='timeTraitSet'/>
+			<lambdas idref='lambdas'/>
+			<indicators idref='indicators'/>
+		</init>
+		
+		<state>
+			<stateNode spec='SeedbankTree' id='sbTree' trait='@typeTraitSet' estimate='true'/>
+			<stateNode idref='transitionRate'/>
+			<stateNode idref='relativeSeedbankSize'/>
+			<stateNode idref='activePopSize'/>
+			<stateNode idref='alpha'/>
+			<stateNode idref='lambdas'/>
+			<stateNode idref='indicators'/>
+		</state>
+	
+		<distribution spec='CompoundDistribution' id='posterior'>
+			<distribution idref='seedbankTreeDensity'/>
+		</distribution>
+		
+		<!-- <operator spec='ScaleOperator' id='transitionRateScaler'
+ 	      parameter='@transitionRate' scaleFactor='0.99' weight='1'>
+     	</operator>
+     	<operator spec='ScaleOperator' id='relativeSeedbankSizeScaler'
+ 	      parameter='@relativeSeedbankSize' scaleFactor='0.99' weight='1'>
+     	</operator>
+     	<operator spec='ScaleOperator' id='alphaScaler'
+ 	      parameter='@alpha' scaleFactor='0.99' weight='1'>
+     	</operator>
+     	<operator spec='ScaleOperator' id='muScaler'
+ 	      parameter='@mutationRate' scaleFactor='0.99' weight='1'>
+     	</operator> -->
+     	
+     	<operator spec='SeedbankTreeScale' id='treeScale'
+           sbTree="@sbTree" transitionModel='@transitionModel'
+           scaleFactor="0.80" weight="1">
+        </operator>
+		
+     	<operator spec='DormantBitFlip' id='indicatorFlipper'
+     	  sbTree='@sbTree' transitionModel='@transitionModel'
+		  lambdas='@lambdas' indicators='@indicators' weight='1'>
+		</operator>
+		
+		<!-- <operator spec='LambdaScaler' 
+		  sbTree='@sbTree' transitionModel='@transitionModel'
+		  lambdas='@lambdas' indicators='@indicators' weight='1'>
+		</operator> -->
+     	
+     	<!-- <operator spec='TypedWilsonBalding' 
+		  sbTree='@sbTree' transitionModel='@transitionModel'
+		  lambdas='@lambdas' indicators='@indicators'
+		  alpha='0.8' weight='10'
+		/> -->
+		
+		<!-- 
+		<operator spec='TypedSubtreeExchange'
+		  sbTree='@sbTree' transitionModel='@transitionModel'
+		  lambdas='@lambdas' indicators='@indicators' weight='10'
+		  isNarrow='true'
+		/> 
+		<operator spec='TypedSubtreeExchange'
+		  sbTree='@sbTree' transitionModel='@transitionModel'
+		  lambdas='@lambdas' indicators='@indicators' weight='10'
+		  isNarrow='false'
+		/> -->
+		
+		<!-- <operator spec='NodeShiftRetype'
+		  sbTree='@sbTree' transitionModel='@transitionModel'
+		  lambdas='@lambdas' indicators='@indicators' weight='10'
+		/> -->
+		
+		<logger id='screenlog' logEvery='10000'>
+			<log idref='posterior'/>
+            <log idref='seedbankTreeDensity'/>
+			<!-- <log spec='LambdaIndicatorLogger' 
+				lambdas='@lambdas' indicators='@indicators' tree='@sbTree'/> -->
+		</logger>
+		
+		<logger id='tracelog' fileName='$(filebase).log' logEvery='100'>
+            <log idref='posterior'/>
+            <log idref='seedbankTreeDensity'/>
+			<log id='treeStatLogger' spec='TreeStatLogger' tree='@sbTree'/>
+			<log id='dormantPercentage' spec='DormantPercentage' sbTree='@sbTree' logLengths='true'/>
+			<log id='typeChangeCountsLogger' spec='TypeChangeCountsLogger' sbTree='@sbTree'/>
+			<log id='nodeTypeCountsLogger' spec='NodeTypeCountsLogger' sbTree='@sbTree'/>
+        </logger>
+		
+		<logger fileName='$(filebase).trees' logEvery='100' id='treelog' mode='tree'>
+			<log idref='sbTree'/>
+		</logger>
+	</run>
+
+</beast>

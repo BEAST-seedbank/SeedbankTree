@@ -1,0 +1,6 @@
+{
+    "sample_size_1": 100,
+    "sample_size_2": 100,
+    "transition_rate": 0.5,
+    "relative_seedbank_size": 1.0
+}

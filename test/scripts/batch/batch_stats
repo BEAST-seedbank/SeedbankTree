@@ -1,0 +1,49 @@
+batch_1
+100 trees
+Log Normal distributions
+No pruning
+No failed trees
+
+batch_2
+100 trees
+Log Normal distributions
+.25<dormancy<.75, expected .5 pruning
+36 failed trees
+
+batch_3
+100 trees
+Log Normal distributions
+.40<dormancy<.60, expected .5 pruning
+404 failed trees
+
+batch_4
+150 trees
+c/K = 1/1
+alpha=0.1
+Log Normal distributions
+No pruning
+No failed trees
+
+batch_5
+150 trees
+c/K = 1/1
+alpha=0.5
+Log Normal distributions
+No pruning
+No failed trees
+
+batch_6
+150 trees
+c/K = 1/10
+alpha=0.1
+Log Normal distributions
+No pruning
+No failed trees
+
+batch_7
+150 trees
+c/K = 1/10
+alpha=0.5
+Log Normal distributions
+No pruning
+No failed trees
