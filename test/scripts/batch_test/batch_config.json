@@ -1,0 +1,6 @@
+{
+  "batch_size": 20,
+  "rounds": 10,
+  "folder": "1_tree_infer_isochronous/1",
+  "shell": "shell.xml"
+}

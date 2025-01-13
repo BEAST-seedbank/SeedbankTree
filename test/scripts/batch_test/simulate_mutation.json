@@ -1,0 +1,11 @@
+{
+    "model": "hky",
+    "sequence_length": 20000,
+    "alpha": 0.1,
+    "mu": 0.01,
+    "pi": [0.25, 0.25, 0.25, 0.25],
+    "kappa": 1,
+    "W_rates": [1, 1, 1, 1, 1, 1],
+    "alpha_constant": true,
+    "mu_constant": true
+}

@@ -1,0 +1,153 @@
+<beast version='2.0' namespace='beast.base.evolution:beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.pkgmgmt:beast.base.core:beast.base.inference.parameter:beast.base.evolution.tree:beast.base.evolution.tree.coalescent:beast.base.util:beast.base.math:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood:beast.evolution.migrationmodel:beast.base.inference.distribution
+:seedbanktree.evolution.tree:seedbanktree.evolution.branchratemodel:seedbanktree.distributions:seedbanktree.inference.distribution:seedbanktree.operators:seedbanktree.util'>
+	<data id='alignment' dataType='nucleotide'>
+    $$$REPLACE_SEQUENCES$$$
+	</data>
+	
+	<!-- Trait data associated with sequences -->
+	<typeTraitSet spec='TraitSet' id='typeTraitSet' traitname='type' 
+		value='$$$REPLACE_TYPES$$$'>
+		<taxa spec='TaxonSet' alignment='@alignment'/>
+	</typeTraitSet>
+	<timeTraitSet spec='TraitSet' id='timeTraitSet' traitname='date-backward' 
+		value='$$$REPLACE_TIMES$$$'>
+		<taxa spec='TaxonSet' alignment='@alignment'/>
+	</timeTraitSet>
+
+	<!-- Transition model -->
+	<transitionModel spec='TransitionModel' id='transitionModel'>
+		<c spec='RealParameter' id='c' value='$$$C_VALUE$$$' lower='0.0'/>
+		<K spec='RealParameter' id='K' value='$$$K_VALUE$$$' lower='0.0'/>
+		<theta spec='RealParameter' id='theta' value='$$$THETA_VALUE$$$' />
+	</transitionModel>
+	
+	<!-- Branch clock model -->
+	<branchRateModel spec='SeedbankClockModel' id='branchRateModel'>
+		<alpha spec='RealParameter' id='alpha' value='$$$ALPHA_VALUE$$$' lower='0.0' upper='1.0'/>
+		<tree idref='sbTree'/>
+	</branchRateModel>
+	
+	<!-- Substitution model and site model -->
+	<siteModel spec='SiteModel' id='siteModel'>
+		<mutationRate spec='RealParameter' id='mutationRate' value='$$$MU_VALUE$$$' lower='0.0'/>
+    <substModel spec='HKY' id='hky'>
+        <kappa spec='RealParameter' id="hky.kappa" value="$$$KAPPA_VALUE$$$" lower="0.0"/>
+
+				<frequencies estimate="false" spec='Frequencies'>
+					<frequencies spec='RealParameter' id="hky.freqs" value="0.25 0.25 0.25 0.25"/>
+       	</frequencies>
+    </substModel>
+	</siteModel>
+	
+	<!-- Priors -->
+	<distribution spec='SeedbankTreeDensity' id='seedbankTreeDensity' checkValidity='true'>
+		<tree idref='sbTree'/>
+		<transitionModel idref='transitionModel'/>
+	</distribution>
+		
+	<distribution spec='CompoundDistribution' id='prior'>
+		<distribution spec='Prior' id='cPrior' x='@c'>
+			$$$C_PRIOR$$$
+		</distribution>
+		
+		<distribution spec='Prior' id='KPrior' x='@K'>
+			$$$K_PRIOR$$$
+		</distribution>
+		
+		<distribution spec='Prior' id='thetaPrior' x='@theta'>
+			$$$THETA_PRIOR$$$
+		</distribution>
+		
+		<distribution spec='Prior' id='alphaPrior' x='@alpha'>
+			$$$ALPHA_PRIOR$$$
+		</distribution>
+		
+		<distribution spec='Prior' id='muPrior' x='@mutationRate'>
+			$$$MU_PRIOR$$$
+		</distribution>
+
+		<distribution spec='Prior' id='kappaPrior' x="@hky.kappa">
+			$$$KAPPA_PRIOR$$$
+		</distribution>
+		
+	</distribution>
+	
+	<!-- Likelihood -->
+	<distribution spec='TreeLikelihood' id='treeLikelihood'>
+		<data idref='alignment'/>
+		<tree idref='sbTree'/>
+		<siteModel idref='siteModel'/>
+		<branchRateModel idref='branchRateModel'/>
+	</distribution>
+	
+	<run spec='MCMC' id='mcmc' chainLength='400000000' storeEvery='500000'>		
+		$$$INITIAL_TREE$$$
+		
+		<state>
+			<stateNode spec='SeedbankTree' id='sbTree' trait='@typeTraitSet' estimate='true'/>
+			<stateNode idref='c'/>
+			<stateNode idref='K'/>
+			<stateNode idref='theta'/>
+			<stateNode idref='alpha'/>
+			<stateNode idref='mutationRate'/>
+			<stateNode idref='hky.kappa'/>
+			<stateNode idref='hky.freqs'/>
+		</state>
+	
+		<distribution spec='CompoundDistribution' id='posterior'>
+			<distribution idref='prior'/>
+			<distribution idref='treeLikelihood'/>
+			<distribution idref='seedbankTreeDensity'/>
+		</distribution>
+
+
+		$$$PARAMETER_SCALERS$$$
+
+		<operator spec='ScaleOperator' id='kappaScaler' parameter="@hky.kappa" scaleFactor="0.80" weight="1"/>
+		<operator spec="DeltaExchangeOperator" id="freqExchanger" parameter="@hky.freqs" delta="0.01" weight="1"/>
+
+		$$$TREE_OPERATORS$$$
+		<operator spec='RecolorBranch' sbTree='@sbTree' transitionModel='@transitionModel' weight='10'/>
+		
+		<logger id='screenlog' logEvery='500000'>
+			<log idref='posterior'/>
+			<log idref='treeLikelihood'/>
+			<log idref='seedbankTreeDensity'/>
+			<log idref='prior'/>
+			<log idref='cPrior'/>
+			<log idref='KPrior'/>
+			<log idref='thetaPrior'/>
+			<log idref='alphaPrior'/>
+			<log idref='muPrior'/>
+		</logger>
+		
+		<logger id='tracelog' fileName='$(filebase).log' logEvery='25000'>
+			<log idref='posterior'/>
+			<log idref='treeLikelihood'/>
+			<log idref='seedbankTreeDensity'/>
+			<log idref='prior'/>
+			<log idref='cPrior'/>
+			<log idref='KPrior'/>
+			<log idref='thetaPrior'/>
+			<log idref='alphaPrior'/>
+			<log idref='muPrior'/>
+			<log idref='kappaPrior'/>
+			<log idref='c'/>
+			<log idref='K'/>
+			<log idref='theta'/>
+			<log idref='alpha'/>
+			<log idref='mutationRate'/>
+			<log idref='hky.kappa'/>
+			<log idref='hky.freqs'/>
+			<log id='treeStatLogger' spec='TreeStatLogger' tree='@sbTree'/>
+			<log id='dormantPercentage' spec='DormantPercentage' sbTree='@sbTree' logLengths='true'/>
+			<log id='typeChangeCountsLogger' spec='TypeChangeCountsLogger' sbTree='@sbTree'/>
+			<log id='nodeTypeCountsLogger' spec='NodeTypeCountsLogger' sbTree='@sbTree'/>
+		</logger>
+		
+		<logger fileName='$(filebase).trees' logEvery='500000' id='treelog' mode='tree'>
+			<log idref='sbTree'/>
+		</logger>
+	</run>
+
+</beast>
