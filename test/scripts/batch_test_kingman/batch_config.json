@@ -1,7 +1,0 @@
-{
-  "batch_size": 20,
-  "rounds": 10,
-  "folder": "4_tree_constant_serial_kingman/1",
-  "original_batch_directory": "./../batch_test/4_tree_constant_serial/1",
-  "shell": "shell.xml"
-}
