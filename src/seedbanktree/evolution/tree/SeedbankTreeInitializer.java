@@ -10,8 +10,6 @@ import beast.base.core.Input.Validate;
 import beast.base.evolution.tree.Node;
 import beast.base.inference.StateNode;
 import beast.base.inference.StateNodeInitialiser;
-import beast.base.inference.parameter.IntegerParameter;
-import beast.base.inference.parameter.RealParameter;
 import beast.base.util.Randomizer;
 
 @Description("Class to initialize a SeedbankTree by randomly simulating a seedbank genealogy "
@@ -19,12 +17,6 @@ import beast.base.util.Randomizer;
 public class SeedbankTreeInitializer extends SeedbankTree implements StateNodeInitialiser {
 	public Input<TransitionModel> transitionModelInput = 
 			new Input<>("transitionModel", "transition model to use in simulator.", Validate.REQUIRED);
-	
-	public Input<RealParameter> lambdasInput = 
-			new Input<>("lambdas", "Branch dormant fraction", Validate.OPTIONAL);
-	
-	public Input<IntegerParameter> etasInput = 
-			new Input<>("etas", "Spike and slab mixture indicator", Validate.OPTIONAL);
 	
 	private TransitionModel transitionModel;
     
@@ -210,7 +202,6 @@ public class SeedbankTreeInitializer extends SeedbankTree implements StateNodeIn
         // Return sole remaining live node as root:
         for (List<SeedbankNode> nodeList : liveLineages)
             if (!nodeList.isEmpty()) {
-            	((SeedbankNode) nodeList.get(0).getLeft()).clearChanges();
             	return nodeList.get(0);
             }
 
@@ -393,29 +384,6 @@ public class SeedbankTreeInitializer extends SeedbankTree implements StateNodeIn
                     + "seedbank tree initializer on regular tree object");
         }
     	m_initial.get().assignFromWithoutID(this);
-    	
-    	if (lambdasInput.get() == null || etasInput.get() == null) {
-    		return;
-    	}
-    				
-    	RealParameter lambdas = lambdasInput.get();
-        IntegerParameter etas = etasInput.get();
-        for (int i = 0; i < getNodeCount()-1; i++) {
-        	SeedbankNode sbNode = (SeedbankNode)getNode(i);
-        	if (sbNode.getChangeCount() != 0) {
-        		double sum = 0.0;
-        		int lastType = sbNode.getNodeType();
-        		double lastHeight = sbNode.getHeight();
-        		for (int j = 0; j < sbNode.getChangeCount(); j++) {
-        			if (lastType == 0)
-        				sum += sbNode.getChangeTime(j) - lastHeight;
-        			lastType = sbNode.getChangeType(j);
-        			lastHeight = sbNode.getChangeTime(j);
-        		}
-        		etas.setValue(i, 1);
-        		lambdas.setValue(i, sum / sbNode.getLength());
-        	}
-        }
     }
 
     @Override
@@ -426,8 +394,6 @@ public class SeedbankTreeInitializer extends SeedbankTree implements StateNodeIn
                     + "seedbank tree initialiser on regular tree object");
         }
         stateNodes.add(m_initial.get());
-        stateNodes.add(lambdasInput.get());
-        stateNodes.add(etasInput.get());
     }
 
 }

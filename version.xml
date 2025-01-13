@@ -14,10 +14,13 @@
         <provider classname="seedbanktree.operators.TypedWilsonBalding"/>
         <provider classname="seedbanktree.operators.TypedSubtreeExchange"/>
         <provider classname="seedbanktree.operators.NodeShiftRetype"/>
+        <provider classname="seedbanktree.util.DormancyTreeLogger"/>
         <provider classname="seedbanktree.util.DormantPercentage"/>
         <provider classname="seedbanktree.util.NodeTypeCountsLogger"/>
         <provider classname="seedbanktree.util.TypeChangeCountsLogger"/>
         <provider classname="seedbanktree.util.TypeLengthsLogger"/>
+        <provider classname="seedbanktree.util.TypedNodeTreeLogger"/>
+        <provider classname="seedbanktree.util.CKLogger"/>
     </service>
 	
 </package>
