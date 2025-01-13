@@ -35,10 +35,12 @@ Check out the "Install by hand" section under [this](https://www.beast2.org/mana
 - `util\` \
   Folder containing some utility loggers.
 
-#### validation_data
+#### validation_testing
 
-- `analytic_validation` \
+- `sample_from_prior` \
   This folder contains example XML files for the analytic validation conducted in the paper. The four subdirectories correspond to the four sets of analytic validation: 2-sample trees using only `NodeShiftRetype`, 2-sample trees using `SeedbankTreeScale` and `RecolorBranch`, and 10-sample and 100-sample trees using all operators. `TABLE_VALUES.txt` compiles all the analytic and MCMC values used in the tables for all the statistics apart from active and dormant length percentage. `length_percentages.ipynb` calculates the active and dormant length percentages.
 
-- `synthetic_validation` \
-  This folder contains the utility scripts for the synthetic validation conducted in the paper. Although the XML files are not included, the `make_batch_runs` subdirectory contains the utility scripts used to automate the pipeline of making synthetic data and creating XML files. To use `batch.py` as it is, make a new `batch_1` subdirectory and then run `python3 batch.py`. The script will generate 100 subdirectories numbered 1 through 100, each with an XML file pertaining to one validation run populated with synthetic data. The modified `treetime` package used to mutate nucleotide sequences is included in `make_batch_runs`. Additionally, feel free to use the functions in `simulate_tree.py` and `simulate_mutation.py` files directly to generate standalone synthetic data of your own.
+- `simulation_study` \
+  This folder contains the utility scripts for the simulation study conducted in the paper. Although the full set of XML files are not included, the directory contains the utility scripts used to automate the pipeline of making synthetic data and creating XML files. The primary python script is `batch.py`, which contains code to generate batches of XML files each pertaining to one validation run populated with synthetic data. `batch.py` is configured by `batch_config.json`, and uses `batch_options.py` to fill in `shell.xml` according to parameter settings in `simulate_tree_config.json` and `simulate_mutation.json`. In each iteration, `batch.py` uses either `simulate_tree_serial.py` or `simulate_tree_isochronous.py` to simulate a seedbank tree topology, and then it uses `simulate_mutation.py` and the modified `treetime` package to mutate nucleotide sequences according to the seedbank coalescent.
+
+  Feel free to use the functions in `simulate_tree_isochronous.py`/`simulate_tree_serial.py` and `simulate_mutation.py` files directly to generate standalone synthetic data of your own.

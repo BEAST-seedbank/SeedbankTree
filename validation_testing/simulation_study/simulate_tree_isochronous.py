@@ -10,16 +10,16 @@ import numpy as np
 # simulate_tree_output.txt
 #
 
-def newick(id, island, time_vector, anc, dec_1, dec_2):
+def newick_isochronous(id, island, time_vector, anc, dec_1, dec_2):
     type = "active" if island[id] == 0 else "dormant"
 
     length = 0.0 if anc[id] == -1 else time_vector[anc[id]] - time_vector[id]
 
     newickStr = ""
     if dec_1[id] != -1:
-        newickStr += "(" + newick(dec_1[id], island, time_vector, anc, dec_1, dec_2)
+        newickStr += "(" + newick_isochronous(dec_1[id], island, time_vector, anc, dec_1, dec_2)
         if dec_2[id] != -1:
-            newickStr += "," + newick(dec_2[id], island, time_vector, anc, dec_1, dec_2)
+            newickStr += "," + newick_isochronous(dec_2[id], island, time_vector, anc, dec_1, dec_2)
         newickStr += ")"
     newickStr += str(id) + "[&type=\"" + type + "\"]:" + str(length)
 
@@ -33,15 +33,15 @@ def newick2(id, island, time_vector, anc, dec_1, dec_2):
 
     newickStr = ""
     if dec_1[id] != -1:
-        newickStr += "(" + newick(dec_1[id], island, time_vector, anc, dec_1, dec_2)
+        newickStr += "(" + newick_isochronous(dec_1[id], island, time_vector, anc, dec_1, dec_2)
         if dec_2[id] != -1:
-            newickStr += "," + newick(dec_2[id], island, time_vector, anc, dec_1, dec_2)
+            newickStr += "," + newick_isochronous(dec_2[id], island, time_vector, anc, dec_1, dec_2)
         newickStr += ")"
     newickStr += str(id) + "[&type=\"" + type + "\"]:" + str(length)
 
     return newickStr
 
-def simulate_tree(sample_size_1, sample_size_2, transition_rate, relative_seedbank_size, theta, log=None, seed=None):
+def simulate_tree_isochronous(sample_size_1, sample_size_2, transition_rate, relative_seedbank_size, theta, log=None, seed=None):
     if not seed:
         seed = int(time.time() * os.getpid()) % (2 ** 32 - 1)
     np.random.seed(seed)
@@ -136,10 +136,10 @@ def main():
     theta = config_data["theta"]
     log = ["sample_size_1 " + str(sample_size_1), "sample_size_2 " + str(sample_size_2), "relative_seedbank_size " + str(relative_seedbank_size), "transition_rate " + str(transition_rate), "theta " + str(theta)]
 
-    root, island, time_vector, anc, dec_1, dec_2, log = simulate_tree(sample_size_1, sample_size_2, transition_rate, relative_seedbank_size, theta, log)
+    root, island, time_vector, anc, dec_1, dec_2, log = simulate_tree_isochronous(sample_size_1, sample_size_2, transition_rate, relative_seedbank_size, theta, log)
 
     with open("simulate_tree_output.txt", "w") as file:
-        newick_str = newick(root, island, time_vector, anc, dec_1, dec_2)
+        newick_str = newick_isochronous(root, island, time_vector, anc, dec_1, dec_2)
 
         file.write(newick_str + ";\n")
     
@@ -169,7 +169,7 @@ def main():
             anc[right] = node
             stack.append(right)
 
-        newick_str = newick(root, island, time_vector, anc, dec_1, dec_2)
+        newick_str = newick_isochronous(root, island, time_vector, anc, dec_1, dec_2)
         newick_str = newick_str.replace("dormant", "active")
         file.write(newick_str + ";\n")
 

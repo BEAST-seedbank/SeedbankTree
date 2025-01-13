@@ -1,0 +1,14 @@
+{
+  "isochronous": true,
+  "sample_sizes_1": [20],
+  "sample_sizes_0": [0],
+  "time_ranges": [],
+  "c": 1.0,
+  "K": 1.0,
+  "theta": 1.0,
+  "c_constant": false,
+  "K_constant": false,
+  "theta_constant": false,
+  "tree_constant": false
+}
+

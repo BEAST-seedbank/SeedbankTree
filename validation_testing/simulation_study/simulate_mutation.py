@@ -20,6 +20,7 @@ def conf_to_names (tree):
   while (clades):
     nxt = []
     for c in clades:
+      # print(f"name: {c.name} confidence: {c.confidence}")
       if c.confidence and not c.name:
         c.name=str(c.confidence)
         c.confidence=None
