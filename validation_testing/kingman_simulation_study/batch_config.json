@@ -1,0 +1,10 @@
+{
+  "batch_size": 1,
+  "rounds": 1,
+  "folder": "./FILEPATH",
+  "original_batch_directory": "./FILEPATH",
+  "shell": "shell.xml",
+  "use_effective_mu": true,
+  "alpha": 0.1,
+  "mu": 0.01 
+}

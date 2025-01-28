@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast beautitemplate='Standard' beautistatus='' namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.base.evolution.tree.coalescent:beast.pkgmgmt:beast.base.core:beast.base.inference.util:beast.evolution.nuc:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood" required="BEAST.base v2.7.7" version="2.7">
+
+    <data
+id="isochronous_1"
+spec="Alignment"
+name="alignment">
+    $$$REPLACE_SEQUENCES$$$
+    </data>
+
+    <map name="Uniform" >beast.base.inference.distribution.Uniform</map>
+
+    <map name="Exponential" >beast.base.inference.distribution.Exponential</map>
+
+    <map name="LogNormal" >beast.base.inference.distribution.LogNormalDistributionModel</map>
+
+    <map name="Normal" >beast.base.inference.distribution.Normal</map>
+
+    <map name="Beta" >beast.base.inference.distribution.Beta</map>
+
+    <map name="Gamma" >beast.base.inference.distribution.Gamma</map>
+
+    <map name="LaplaceDistribution" >beast.base.inference.distribution.LaplaceDistribution</map>
+
+    <map name="prior" >beast.base.inference.distribution.Prior</map>
+
+    <map name="InverseGamma" >beast.base.inference.distribution.InverseGamma</map>
+
+    <map name="OneOnX" >beast.base.inference.distribution.OneOnX</map>
+
+    <run id="mcmc" spec="MCMC" chainLength="10000000">
+        <state id="state" spec="State" storeEvery="100000">
+            <tree id="Tree.t:isochronous_1" spec="beast.base.evolution.tree.Tree" name="stateNode">
+                <taxonset id="TaxonSet.isochronous_1" spec="TaxonSet">
+                    <alignment idref="isochronous_1"/>
+                </taxonset>
+            </tree>
+            <parameter id="kappa.s:isochronous_1" spec="parameter.RealParameter" lower="0.0" name="stateNode">2.0</parameter>
+            <parameter id="freqParameter.s:isochronous_1" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>
+            <parameter id="popSize.t:isochronous_1" spec="parameter.RealParameter" lower="0.0" name="stateNode">0.3</parameter>
+        </state>
+        <init id="RandomTree.t:isochronous_1" spec="RandomTree" estimate="false" initial="@Tree.t:isochronous_1" taxa="@isochronous_1">
+            <populationModel id="ConstantPopulation0.t:isochronous_1" spec="ConstantPopulation">
+                <parameter id="randomPopSize.t:isochronous_1" spec="parameter.RealParameter" name="popSize">1.0</parameter>
+            </populationModel>
+        </init>
+        <distribution id="posterior" spec="CompoundDistribution">
+            <distribution id="prior" spec="CompoundDistribution">
+                <distribution id="CoalescentConstant.t:isochronous_1" spec="Coalescent">
+                    <populationModel id="ConstantPopulation.t:isochronous_1" spec="ConstantPopulation" popSize="@popSize.t:isochronous_1"/>
+                    <treeIntervals id="TreeIntervals.t:isochronous_1" spec="beast.base.evolution.tree.TreeIntervals" tree="@Tree.t:isochronous_1"/>
+                </distribution>
+                <prior id="FrequenciesPrior.s:isochronous_1" name="distribution" x="@freqParameter.s:isochronous_1">
+                    <distr id="Dirichlet.0" spec="distribution.Dirichlet">
+                        <parameter id="RealParameter.7" spec="parameter.RealParameter" dimension="4" estimate="false" name="alpha">4.0 4.0 4.0 4.0</parameter>
+                    </distr>
+                </prior>
+                <prior id="KappaPrior.s:isochronous_1" name="distribution" x="@kappa.s:isochronous_1">
+                    <LogNormal id="LogNormalDistributionModel.1" name="distr">
+                        <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="M">1.0</parameter>
+                        <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" name="S">1.25</parameter>
+                    </LogNormal>
+                </prior>
+                <prior id="PopSizePrior.t:isochronous_1" name="distribution" x="@popSize.t:isochronous_1">
+                    <OneOnX id="OneOnX.1" name="distr"/>
+                </prior>
+            </distribution>
+            <distribution id="likelihood" spec="CompoundDistribution" useThreads="true">
+                <distribution id="treeLikelihood.isochronous_1" spec="ThreadedTreeLikelihood" data="@isochronous_1" tree="@Tree.t:isochronous_1">
+                    <siteModel id="SiteModel.s:isochronous_1" spec="SiteModel">
+                        <parameter id="mutationRate.s:isochronous_1" spec="parameter.RealParameter" estimate="false" lower="0.0" name="mutationRate">1.0</parameter>
+                        <parameter id="gammaShape.s:isochronous_1" spec="parameter.RealParameter" estimate="false" lower="0.1" name="shape">1.0</parameter>
+                        <parameter id="proportionInvariant.s:isochronous_1" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+                        <substModel id="hky.s:isochronous_1" spec="HKY" kappa="@kappa.s:isochronous_1">
+                            <frequencies id="estimatedFreqs.s:isochronous_1" spec="Frequencies" frequencies="@freqParameter.s:isochronous_1"/>
+                        </substModel>
+                    </siteModel>
+                    <branchRateModel id="StrictClock.c:isochronous_1" spec="beast.base.evolution.branchratemodel.StrictClockModel">
+                        <parameter id="clockRate.c:isochronous_1" spec="parameter.RealParameter" estimate="false" lower="0.0" name="clock.rate">1.0</parameter>
+                    </branchRateModel>
+                </distribution>
+            </distribution>
+        </distribution>
+        <operator id="KappaScaler.s:isochronous_1" spec="AdaptableOperatorSampler" weight="0.05">
+            <parameter idref="kappa.s:isochronous_1"/>
+            <operator id="AVMNOperator.isochronous_1" spec="kernel.AdaptableVarianceMultivariateNormalOperator" allowNonsense="true" beta="0.05" burnin="400" initial="800" weight="0.1">
+                <transformations id="AVMNSumTransform.isochronous_1" spec="operator.kernel.Transform$LogConstrainedSumTransform">
+                    <f idref="freqParameter.s:isochronous_1"/>
+                </transformations>
+                <transformations id="AVMNLogTransform.isochronous_1" spec="operator.kernel.Transform$LogTransform">
+                    <f idref="kappa.s:isochronous_1"/>
+                </transformations>
+                <transformations id="AVMNNoTransform.isochronous_1" spec="operator.kernel.Transform$NoTransform">
+                    <f idref="Tree.t:isochronous_1"/>
+                </transformations>
+            </operator>
+            <operator id="KappaScalerX.s:isochronous_1" spec="kernel.BactrianScaleOperator" parameter="@kappa.s:isochronous_1" scaleFactor="0.1" upper="10.0" weight="0.1"/>
+        </operator>
+        <operator id="FrequenciesExchanger.s:isochronous_1" spec="AdaptableOperatorSampler" weight="0.05">
+            <parameter idref="freqParameter.s:isochronous_1"/>
+            <operator idref="AVMNOperator.isochronous_1"/>
+            <operator id="FrequenciesExchangerX.s:isochronous_1" spec="operator.kernel.BactrianDeltaExchangeOperator" delta="0.01" weight="0.1">
+                <parameter idref="freqParameter.s:isochronous_1"/>
+            </operator>
+        </operator>
+        <operator id="CoalescentConstantBICEPSEpochTop.t:isochronous_1" spec="EpochFlexOperator" scaleFactor="0.1" tree="@Tree.t:isochronous_1" weight="2.0"/>
+        <operator id="CoalescentConstantBICEPSEpochAll.t:isochronous_1" spec="EpochFlexOperator" fromOldestTipOnly="false" scaleFactor="0.1" tree="@Tree.t:isochronous_1" weight="2.0"/>
+        <operator id="CoalescentConstantBICEPSTreeFlex.t:isochronous_1" spec="TreeStretchOperator" scaleFactor="0.01" tree="@Tree.t:isochronous_1" weight="2.0"/>
+        <operator id="CoalescentConstantTreeRootScaler.t:isochronous_1" spec="kernel.BactrianScaleOperator" rootOnly="true" scaleFactor="0.1" tree="@Tree.t:isochronous_1" upper="10.0" weight="3.0"/>
+        <operator id="CoalescentConstantUniformOperator.t:isochronous_1" spec="kernel.BactrianNodeOperator" tree="@Tree.t:isochronous_1" weight="30.0"/>
+        <operator id="CoalescentConstantSubtreeSlide.t:isochronous_1" spec="kernel.BactrianSubtreeSlide" tree="@Tree.t:isochronous_1" weight="15.0"/>
+        <operator id="CoalescentConstantNarrow.t:isochronous_1" spec="Exchange" tree="@Tree.t:isochronous_1" weight="15.0"/>
+        <operator id="CoalescentConstantWide.t:isochronous_1" spec="Exchange" isNarrow="false" tree="@Tree.t:isochronous_1" weight="3.0"/>
+        <operator id="CoalescentConstantWilsonBalding.t:isochronous_1" spec="WilsonBalding" tree="@Tree.t:isochronous_1" weight="3.0"/>
+        <operator id="PopSizeScaler.t:isochronous_1" spec="kernel.BactrianScaleOperator" parameter="@popSize.t:isochronous_1" upper="10.0" weight="3.0"/>
+        <logger id="tracelog" spec="Logger" fileName="$(filebase).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log idref="treeLikelihood.isochronous_1"/>
+            <log id="TreeHeight.t:isochronous_1" spec="beast.base.evolution.tree.TreeStatLogger" tree="@Tree.t:isochronous_1"/>
+            <log idref="kappa.s:isochronous_1"/>
+            <log idref="freqParameter.s:isochronous_1"/>
+            <log idref="popSize.t:isochronous_1"/>
+            <log idref="CoalescentConstant.t:isochronous_1"/>
+        </logger>
+        <logger id="screenlog" spec="Logger" logEvery="100000">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+        </logger>
+        <logger id="treelog.t:isochronous_1" spec="Logger" fileName="$(filebase)-$(tree).trees" logEvery="1000" mode="tree">
+            <log id="TreeWithMetaDataLogger.t:isochronous_1" spec="beast.base.evolution.TreeWithMetaDataLogger" tree="@Tree.t:isochronous_1"/>
+        </logger>
+        <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
+    </run>
+
+</beast>

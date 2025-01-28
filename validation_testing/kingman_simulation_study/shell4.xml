@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beast beautitemplate='Standard' beautistatus='' namespace="beast.core:beast.evolution.alignment:beast.evolution.tree.coalescent:beast.core.util:beast.evolution.nuc:beast.evolution.operators:beast.evolution.sitemodel:beast.evolution.substitutionmodel:beast.base.evolution.alignment:beast.pkgmgmt:beast.base.core:beast.base.inference:beast.base.evolution.tree.coalescent:beast.pkgmgmt:beast.base.core:beast.base.inference.util:beast.evolution.nuc:beast.base.evolution.operator:beast.base.inference.operator:beast.base.evolution.sitemodel:beast.base.evolution.substitutionmodel:beast.base.evolution.likelihood" required="BEAST.base v2.7.7" version="2.7">
+
+    <data id="serial_1" spec="Alignment" name="alignment">
+    $$$REPLACE_SEQUENCES$$$
+    </data>
+
+    <map name="Uniform" >beast.base.inference.distribution.Uniform</map>
+
+    <map name="Exponential" >beast.base.inference.distribution.Exponential</map>
+
+    <map name="LogNormal" >beast.base.inference.distribution.LogNormalDistributionModel</map>
+
+    <map name="Normal" >beast.base.inference.distribution.Normal</map>
+
+    <map name="Beta" >beast.base.inference.distribution.Beta</map>
+
+    <map name="Gamma" >beast.base.inference.distribution.Gamma</map>
+
+    <map name="LaplaceDistribution" >beast.base.inference.distribution.LaplaceDistribution</map>
+
+    <map name="prior" >beast.base.inference.distribution.Prior</map>
+
+    <map name="InverseGamma" >beast.base.inference.distribution.InverseGamma</map>
+
+    <map name="OneOnX" >beast.base.inference.distribution.OneOnX</map>
+
+    <run id="mcmc" spec="MCMC" chainLength="10000000">
+        <state id="state" spec="State" storeEvery="100000">
+            <tree id="Tree.t:serial_1" spec="beast.base.evolution.tree.Tree" name="stateNode">
+                <trait id="dateTrait.t:serial_1" spec="beast.base.evolution.tree.TraitSet" traitname="date-backward" 
+                $$$REPLACE_TIME_VALUES$$$
+                    <taxa id="TaxonSet.serial_1" spec="TaxonSet">
+                        <alignment idref="serial_1"/>
+                    </taxa>
+                </trait>
+                <taxonset idref="TaxonSet.serial_1"/>
+            </tree>
+            <parameter id="clockRate.c:serial_1" spec="parameter.RealParameter" lower="0.0" name="stateNode">1.0</parameter>
+            <parameter id="freqParameter.s:serial_1" spec="parameter.RealParameter" dimension="4" lower="0.0" name="stateNode" upper="1.0">0.25</parameter>
+            <parameter id="kappa.s:serial_1" spec="parameter.RealParameter" lower="0.0" name="stateNode">2.0</parameter>
+            <parameter id="popSize.t:serial_1" spec="parameter.RealParameter" lower="0.0" name="stateNode">0.3</parameter>
+        </state>
+        <init id="NewickTree.t:serial_1" spec="beast.base.evolution.tree.TreeParser" IsLabelledNewick="true" estimate="false" initial="@Tree.t:serial_1" taxa="@serial_1" 
+        newick="$$$REPLACE_NEWICK$$$"
+        />
+        <distribution id="posterior" spec="CompoundDistribution">
+            <distribution id="prior" spec="CompoundDistribution">
+                <distribution id="CoalescentConstant.t:serial_1" spec="Coalescent">
+                    <populationModel id="ConstantPopulation.t:serial_1" spec="ConstantPopulation" popSize="@popSize.t:serial_1"/>
+                    <treeIntervals id="TreeIntervals.t:serial_1" spec="beast.base.evolution.tree.TreeIntervals" tree="@Tree.t:serial_1"/>
+                </distribution>
+                <prior id="ClockPrior.c:serial_1" name="distribution" x="@clockRate.c:serial_1">
+                    <Uniform id="Uniform.0" name="distr" upper="Infinity"/>
+                </prior>
+                <prior id="FrequenciesPrior.s:serial_1" name="distribution" x="@freqParameter.s:serial_1">
+                    <distr id="Dirichlet.0" spec="distribution.Dirichlet">
+                        <parameter id="RealParameter.9" spec="parameter.RealParameter" dimension="4" estimate="false" name="alpha">4.0 4.0 4.0 4.0</parameter>
+                    </distr>
+                </prior>
+                <prior id="KappaPrior.s:serial_1" name="distribution" x="@kappa.s:serial_1">
+                    <LogNormal id="LogNormalDistributionModel.3" name="distr">
+                        <parameter id="RealParameter.10" spec="parameter.RealParameter" estimate="false" name="M">1.0</parameter>
+                        <parameter id="RealParameter.11" spec="parameter.RealParameter" estimate="false" name="S">1.25</parameter>
+                    </LogNormal>
+                </prior>
+                <prior id="PopSizePrior.t:serial_1" name="distribution" x="@popSize.t:serial_1">
+                    <OneOnX id="OneOnX.1" name="distr"/>
+                </prior>
+            </distribution>
+            <distribution id="likelihood" spec="CompoundDistribution" useThreads="true">
+                <distribution id="treeLikelihood.serial_1" spec="ThreadedTreeLikelihood" data="@serial_1" tree="@Tree.t:serial_1">
+                    <siteModel id="SiteModel.s:serial_1" spec="SiteModel">
+                        <parameter id="mutationRate.s:serial_1" spec="parameter.RealParameter" estimate="false" lower="0.0" name="mutationRate">1.0</parameter>
+                        <parameter id="gammaShape.s:serial_1" spec="parameter.RealParameter" estimate="false" lower="0.1" name="shape">1.0</parameter>
+                        <parameter id="proportionInvariant.s:serial_1" spec="parameter.RealParameter" estimate="false" lower="0.0" name="proportionInvariant" upper="1.0">0.0</parameter>
+                        <substModel id="hky.s:serial_1" spec="HKY" kappa="@kappa.s:serial_1">
+                            <frequencies id="estimatedFreqs.s:serial_1" spec="Frequencies" frequencies="@freqParameter.s:serial_1"/>
+                        </substModel>
+                    </siteModel>
+                    <branchRateModel id="StrictClock.c:serial_1" spec="beast.base.evolution.branchratemodel.StrictClockModel" clock.rate="@clockRate.c:serial_1"/>
+                </distribution>
+            </distribution>
+        </distribution>
+        
+        <operator id="StrictClockRateScaler.c:serial_1" spec="AdaptableOperatorSampler" weight="1.5">
+            <parameter idref="clockRate.c:serial_1"/>
+            <operator id="AVMNOperator.serial_1" spec="kernel.AdaptableVarianceMultivariateNormalOperator" allowNonsense="true" beta="0.05" burnin="400" initial="800" weight="0.1">
+                <transformations id="AVMNSumTransform.serial_1" spec="operator.kernel.Transform$LogConstrainedSumTransform">
+                    <f idref="freqParameter.s:serial_1"/>
+                </transformations>
+                <transformations id="AVMNLogTransform.serial_1" spec="operator.kernel.Transform$LogTransform">
+                    <f idref="clockRate.c:serial_1"/>
+                    <f idref="kappa.s:serial_1"/>
+                </transformations>
+                <!-- <transformations id="AVMNNoTransform.serial_1" spec="operator.kernel.Transform$NoTransform">
+                    <f idref="Tree.t:serial_1"/>
+                </transformations> -->
+            </operator>
+            <operator id="StrictClockRateScalerX.c:serial_1" spec="kernel.BactrianScaleOperator" parameter="@clockRate.c:serial_1" upper="10.0" weight="3.0"/>
+        </operator>
+        <!-- <operator id="strictClockUpDownOperator.c:serial_1" spec="AdaptableOperatorSampler" weight="1.5">
+            <parameter idref="clockRate.c:serial_1"/>
+            <tree idref="Tree.t:serial_1"/>
+            <operator idref="AVMNOperator.serial_1"/>
+            <operator id="strictClockUpDownOperatorX.c:serial_1" spec="operator.kernel.BactrianUpDownOperator" scaleFactor="0.75" weight="3.0">
+                <up idref="clockRate.c:serial_1"/>
+                <down idref="Tree.t:serial_1"/>
+            </operator>
+        </operator> -->
+        <operator id="FrequenciesExchanger.s:serial_1" spec="AdaptableOperatorSampler" weight="0.05">
+            <parameter idref="freqParameter.s:serial_1"/>
+            <operator idref="AVMNOperator.serial_1"/>
+            <operator id="FrequenciesExchangerX.s:serial_1" spec="operator.kernel.BactrianDeltaExchangeOperator" delta="0.01" weight="0.1">
+                <parameter idref="freqParameter.s:serial_1"/>
+            </operator>
+        </operator>
+        <operator id="KappaScaler.s:serial_1" spec="AdaptableOperatorSampler" weight="0.05">
+            <parameter idref="kappa.s:serial_1"/>
+            <operator idref="AVMNOperator.serial_1"/>
+            <operator id="KappaScalerX.s:serial_1" spec="kernel.BactrianScaleOperator" parameter="@kappa.s:serial_1" scaleFactor="0.1" upper="10.0" weight="0.1"/>
+        </operator>
+        <!-- <operator id="CoalescentConstantBICEPSEpochTop.t:serial_1" spec="EpochFlexOperator" scaleFactor="0.1" tree="@Tree.t:serial_1" weight="2.0"/>
+        <operator id="CoalescentConstantBICEPSEpochAll.t:serial_1" spec="EpochFlexOperator" fromOldestTipOnly="false" scaleFactor="0.1" tree="@Tree.t:serial_1" weight="2.0"/>
+        <operator id="CoalescentConstantBICEPSTreeFlex.t:serial_1" spec="TreeStretchOperator" scaleFactor="0.01" tree="@Tree.t:serial_1" weight="2.0"/>
+        <operator id="CoalescentConstantTreeRootScaler.t:serial_1" spec="kernel.BactrianScaleOperator" rootOnly="true" scaleFactor="0.1" tree="@Tree.t:serial_1" upper="10.0" weight="3.0"/>
+        <operator id="CoalescentConstantUniformOperator.t:serial_1" spec="kernel.BactrianNodeOperator" tree="@Tree.t:serial_1" weight="30.0"/>
+        <operator id="CoalescentConstantSubtreeSlide.t:serial_1" spec="kernel.BactrianSubtreeSlide" tree="@Tree.t:serial_1" weight="15.0"/>
+        <operator id="CoalescentConstantNarrow.t:serial_1" spec="Exchange" tree="@Tree.t:serial_1" weight="15.0"/>
+        <operator id="CoalescentConstantWide.t:serial_1" spec="Exchange" isNarrow="false" tree="@Tree.t:serial_1" weight="3.0"/>
+        <operator id="CoalescentConstantWilsonBalding.t:serial_1" spec="WilsonBalding" tree="@Tree.t:serial_1" weight="3.0"/> -->
+        <operator id="PopSizeScaler.t:serial_1" spec="kernel.BactrianScaleOperator" parameter="@popSize.t:serial_1" upper="10.0" weight="3.0"/>
+
+        <logger id="tracelog" spec="Logger" fileName="$(filebase).log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+            <log idref="treeLikelihood.serial_1"/>
+            <log id="TreeHeight.t:serial_1" spec="beast.base.evolution.tree.TreeStatLogger" tree="@Tree.t:serial_1"/>
+            <log idref="clockRate.c:serial_1"/>
+            <log idref="freqParameter.s:serial_1"/>
+            <log idref="kappa.s:serial_1"/>
+            <log idref="popSize.t:serial_1"/>
+            <log idref="CoalescentConstant.t:serial_1"/>
+        </logger>
+        <logger id="screenlog" spec="Logger" logEvery="100000">
+            <log idref="posterior"/>
+            <log idref="likelihood"/>
+            <log idref="prior"/>
+        </logger>
+        <logger id="treelog.t:serial_1" spec="Logger" fileName="$(filebase)-$(tree).trees" logEvery="1000" mode="tree">
+            <log id="TreeWithMetaDataLogger.t:serial_1" spec="beast.base.evolution.TreeWithMetaDataLogger" tree="@Tree.t:serial_1"/>
+        </logger>
+        <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
+    </run>
+
+</beast>
